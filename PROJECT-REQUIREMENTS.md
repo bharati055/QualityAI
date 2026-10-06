@@ -2,403 +2,322 @@
 
 ## 1. Overview
 
-QualityAI is an AI-powered quality gate and review platform designed to protect software delivery from shallow validation and low-quality AI-generated code. The product exists to ensure that code generated through tools like Copilot, Claude, ChatGPT, and other AI-assisted workflows is reviewed and validated against a project’s standards, requirements, and business risk—not just whether unit tests pass.
+QualityAI is an open-source library of **QA skills, specialist agents, and operating instructions**. Teams vendor it into any repository so AI-assisted coding agents can run requirement-aware, evidence-based quality review.
 
-The project addresses a growing problem in modern software delivery: teams increasingly rely on AI-assisted code generation and direct PR creation without deep review, resulting in code that is syntactically correct but weak in design, security, edge-case handling, requirement traceability, and test quality.
+v1 is a **markdown drop-in pack** (typically `.qualityai/`). It encodes review methodology: what to check, how to check it, what is in or out of scope, and how to report findings. It is not a hosted platform, not a CI runner, and not an issue tracker.
 
-QualityAI is not just a test runner. It is a quality assurance and governance platform that starts from requirement intent and continues through design, coding, review, validation, and deployment readiness.
+The problem it addresses: AI-assisted delivery produces a high volume of syntactically valid code that often misses design intent, security, edge cases, requirement traceability, and meaningful tests. Existing linters and coverage numbers do not close that gap. QualityAI turns senior QA judgment into reusable artifacts any repo can consume.
+
+Later addons (not v1) attach the pack to GitHub workflows/Actions, Jira requirement intake, GCO (GCP Monitoring), and an optional CLI/rules engine.
 
 ## 2. Problem Statement
 
-Today, AI-generated code is being used widely in software development workflows. Teams often produce large amounts of code quickly, raise PRs immediately, and rely on generic validation or shallow PR reviews. This creates several risks:
+Teams generate code quickly, open changes immediately, and rely on shallow review. Risks include:
 
-- Code passes basic tests but violates project standards or architecture.
-- AI-generated changes drift away from the original requirement intent.
-- Security, reliability, observability, and edge-case handling are often overlooked.
-- Reviewers are overloaded and rely on surface-level checks.
-- Test coverage is treated as a proxy for quality even when tests are weak or incomplete.
-- Manual review quality degrades as the volume of generated code rises.
+- Changes pass basic tests but violate architecture or standards.
+- Implementation drifts from requirement intent.
+- Security, reliability, observability, and edge cases are skipped.
+- Reviewers are overloaded and check the surface, not the risk.
+- Coverage percentage is treated as quality.
+- Tribal standards live in people’s heads, not in the repo.
 
-Existing code review tools often focus on code style or broad linting, but not on deeper review quality, standards enforcement, or traceability from requirement to shipping code.
-
-QualityAI addresses this by introducing intelligent quality gates and review frameworks that enforce standards and help human reviewers focus on meaningful risk.
+QualityAI v1 does not replace human merge judgment. It gives every host repo the same specialist review playbooks and a shared finding contract so an AI agent (and a human) can review with depth.
 
 ## 3. Product Vision
 
-To become the quality and trust layer for AI-assisted software delivery.
+Become the portable quality-and-trust **knowledge layer** for AI-assisted software delivery.
 
-QualityAI will help engineering teams:
+Engineering teams should be able to:
 
-- validate code against business and technical requirements,
-- detect AI-generated code patterns and apply stricter review standards,
-- strengthen pull request review quality,
-- enforce organizational standards and domain-specific rules,
-- improve test quality beyond raw coverage numbers,
-- provide actionable feedback before merge,
-- support continuous quality governance across the development lifecycle.
+- vendor one pack and get consistent review behavior,
+- validate changes against requirements and standards, not only tests,
+- apply stricter review when changes look AI-assisted,
+- keep methodology in skills (auditable, versioned) rather than in one-off prompts,
+- later plug the same pack into CI, Jira, and telemetry without rewriting the brain.
 
 ## 4. Goals
 
-### 4.1 Primary Goals
+### 4.1 Primary goals (v1)
 
-- Protect the software delivery pipeline from low-quality AI-generated code.
-- Ensure code changes are validated against actual requirements, not only tests.
-- Improve the quality and depth of PR reviews.
-- Make quality rules reusable, auditable, and enforceable.
-- Enable teams to codify and scale their engineering standards.
+- Ship a complete, coherent set of skills, agents, and instructions.
+- Make the pack consumable by copying `.qualityai/` into any repo.
+- Keep skills as the single source of methodology; agents only orchestrate and decide.
+- Require evidence, severity, confidence, and skill citation on every finding.
+- Encode lifecycle quality gates as agent/skill responsibilities, not CI jobs.
 
-### 4.2 Secondary Goals
+### 4.2 Secondary goals (later addons)
 
-- Support Jira-based requirement workflows and issue traceability.
-- Help reviewers identify what needs human investigation versus automatic validation.
-- Detect risky code generation patterns and apply stricter review criteria.
-- Provide consistent quality reports for engineering leaders.
-- Reduce regression risk while accelerating delivery.
+- GitHub workflows/Actions that invoke or comment using the same pack.
+- Jira (and similar) requirement intake feeding the requirement-alignment skill.
+- GCO (Google Cloud Monitoring / GCP Console) for three use cases: (1) create effective SLOs and alerts, (2) use service performance metrics to determine performance and load requirements, (3) use those metrics for test-failure RCA and reporting.
+- Optional CLI/rules engine that evaluates the same skills deterministically where possible.
 
 ## 5. Scope
 
-### 5.1 In Scope
+### 5.1 In scope for v1
 
-- Requirement intake from issue trackers like Jira.
-- Quality standards definition and enforcement.
-- AI-generated code detection and risk scoring.
-- Review quality evaluation for pull requests.
-- Risk-based review guidance for human reviewers.
-- Test quality analysis beyond simple coverage.
-- Security, reliability, and maintainability checks.
-- Quality gate workflow integration with GitHub and CI/CD systems.
-- Policy and rules engine for custom standards.
-- Reporting and summaries for engineering teams.
+- Drop-in directory layout: `agents/`, `skills/`, `instructions/`.
+- All specialist agents, feedback pairs, orchestrator, critic, and gate instruction files.
+- All canonical skills (folder-per-skill with `SKILL.md`, playbooks, coverage/gaps, examples, references).
+- One shared playbook template that every skill playbook must follow (keeps structure consistent across all skills).
+- Host-repo consumption contract (how to vendor and point the host agent at the pack).
+- Finding/output schema (markdown + JSON-shaped fields) that later addons can consume unchanged.
+- Honest coverage boundaries, especially for AI-assisted-code review (rubric, not a detector product).
+- Language defaults: methodology is language-agnostic; when a code sample is required use Java; when a script is required use Python.
+- This repository is the publishable open-source pack (docs at root + `.qualityai/` as the consumable tree).
 
-### 5.2 Out of Scope (Initial Version)
+### 5.2 Out of scope for v1
 
-- Full enterprise workflow orchestration beyond the core quality platform.
-- Deep code execution sandboxing for arbitrary untrusted code.
-- Full issue management system replacement.
-- Large-scale autonomous agentic coding workflows beyond review and validation assistance.
-- Complete compliance automation for every possible regulatory framework in v1.
+- GitHub Actions, workflows, PR bots, merge checks.
+- Jira or other issue-tracker integrations.
+- GCO or any production telemetry pipeline.
+- CLI, YAML rules engine, language-specific scanners as required runtime.
+- Merge blocking or org-wide policy enforcement.
+- Full enterprise workflow orchestration, sandboxed code execution, replacing Jira/GitHub.
+- Claiming reliable identification of Copilot vs Claude vs human authorship.
 
-## 6. Target Users
+### 5.3 In scope later (addons)
 
-### 6.1 Primary Users
+- GitHub workflows/Actions adapter.
+- Jira skill/adapter for issue and acceptance-criteria intake.
+- GCO (GCP Monitoring / Console): SLOs/alerts; performance/load requirements from metrics; test-failure RCA/reporting.
+- Optional CLI/API and GitLab/Jenkins/Slack adapters that call the same core later.
 
-- Engineering managers
-- Senior engineers and architects
-- Quality engineers and test engineers
-- Platform engineers
-- Security reviewers
-- Product owners and delivery leads
+## 6. Target users
 
-### 6.2 Secondary Users
+### 6.1 Primary (v1)
 
-- Developers using Copilot or other AI assistants
-- Reviewers responsible for merge decisions
-- DevOps teams integrating quality gates into CI/CD
-- Team leads enforcing org-level standards
+- Teams using Cursor or similar AI coding agents who want reusable QA review.
+- Senior engineers, architects, and QA leads who want standards in-repo.
+- Anyone vendoring quality methodology into many repositories.
 
-## 7. Core Principles
+### 6.2 Later
 
-### 7.1 Quality Starts at Requirements
+- Platform/DevOps teams wiring quality gates into CI.
+- Engineering managers who want reports and telemetry.
+- Security and compliance stakeholders who need audit trails from addons.
 
-A code change is only good if it satisfies the intended requirement and aligns with project quality standards. QualityAI should validate from requirement intent, not just from code execution.
+## 7. Core principles
 
-### 7.2 Tests Are Necessary, Not Sufficient
+### 7.1 Quality starts at requirements
 
-Passing automated tests is a minimum bar, not a quality guarantee. QualityAI must evaluate if tests are meaningful, complete, and aligned with risk.
+A change is good only if it satisfies intended requirements and project standards.
 
-### 7.3 AI-Generated Code Requires Higher Scrutiny
+### 7.2 Tests are necessary, not sufficient
 
-AI-generated code should not be treated the same as carefully hand-authored code. QualityAI should detect patterns associated with AI-assisted generation and escalate review depth as needed.
+Passing tests is a minimum. Skills must judge whether tests are meaningful and risk-aligned.
 
-### 7.4 Review Quality Must Improve with Volume
+### 7.3 AI-assisted code needs higher scrutiny
 
-As automation accelerates output, review quality must also become more intelligent and structured. QualityAI exists to support deeper, risk-based reviews.
+v1 does not ship an authorship detector. The ai-code-detection skill is a **review-depth rubric**: when a change is large, generic, or likely AI-assisted, apply stricter checks. Do not claim a vendor-specific “signature” as fact.
 
-### 7.5 Standards Must Be Codified
+### 7.4 Review quality must scale with volume
 
-Organizations should not depend on tribal knowledge alone. QualityAI helps convert rules, policies, and standards into reusable, enforceable checks.
+Agents specialize; feedback agents challenge findings; humans keep merge authority.
 
-## 8. Functional Requirements
+### 7.5 Standards must be codified in skills
 
-### 8.1 Requirement Intake and Traceability
+Agents and prompts reference skills. They do not duplicate methodology.
 
-The system shall support the ingestion of work items from issue trackers such as Jira.
+### 7.6 Core is tool-agnostic
 
-Requirements:
-- Import issues, epics, user stories, and acceptance criteria.
-- Attach quality expectations to requirements.
-- Maintain traceability between requirement IDs, PRs, code changes, and QC results.
-- Highlight when code changes do not match the original requirement intent.
+v1 runs wherever an agent can read markdown in the repo. GitHub, Jira, and GCO are addons.
 
-### 8.2 Standards and Policies Engine
+### 7.7 Gates recommend; humans decide
 
-The system shall allow organizations to define quality rules and standards.
+v1 output is advisory. Enforcement is a later CI concern.
 
-Requirements:
-- Support reusable quality rules by domain, language, and project type.
-- Provide rule categories such as:
-  - security
-  - reliability
-  - maintainability
-  - testing
-  - accessibility
-  - architecture
-  - performance
-  - observability
-- Allow custom rules by team or product area.
-- Support severity levels: warn, fail, blocking.
+### 7.8 AI-era quality is continuous, not sample-based
 
-### 8.3 AI-Generated Code Detection
+Quality spans human and AI agents. Evolve from traditional sample-based auditing toward continuous, AI-enabled quality management across the delivery lifecycle.
 
-The system shall assess whether code is likely AI-generated or AI-assisted.
+### 7.9 AI systems need evaluation frameworks and HITL
+
+AI agents, support bots, and recommendation engines require evaluation benchmarks, testing protocols, and human-in-the-loop workflows so they operate as intended and humans can override or escalate.
+
+### 7.10 Audit AI outputs for intent, safety, tone, and hallucination
+
+Continuously evaluate AI-generated outputs (e.g. support chats, recommendations, booking/transactional updates, AI-assisted code) for intent fulfillment, safety, tone, and hallucination prevention.
+
+## 8. Functional requirements
+
+### 8.1 Consumption contract
+
+The system shall be consumable without GitHub or Jira.
 
 Requirements:
-- Detect common pattern signatures associated with generated code.
-- Identify risk levels for AI-generated patches.
-- Apply stricter review expectations when AI-generated code is detected.
-- Provide a confidence score and explanation for the detection outcome.
 
-### 8.4 PR Review Intelligence
+- Host repos vendor `.qualityai/` (copy, subtree, or submodule).
+- The pack SHALL be tool-agnostic: any markdown-capable coding agent can load it.
+- v1 SHALL document a concrete Cursor wiring via host `AGENTS.md`. Other agents (Claude Code, Copilot, etc.) SHALL be supported by pointing their instruction file at `.qualityai/` (short note only; no separate pack per tool).
+- Host instruction files SHALL tell agents to load `.qualityai/instructions/` and delegate to `.qualityai/agents/` and `.qualityai/skills/`.
+- No network service SHALL be required for v1 review.
+- Skill IDs and agent role names SHALL be stable so addons can attach later without renaming.
+- This repository SHALL be the publishable open-source distribution, licensed under MIT.
 
-The system shall improve review depth for pull requests and code changes.
+### 8.2 Skills library
 
-Requirements:
-- Summarize the purpose and risk of a PR.
-- Identify likely product or technical risks in the change.
-- Check for missing edge-case coverage.
-- Review if error handling is adequate.
-- Report whether security and validation logic are present.
-- Suggest reviewers or required review paths based on code risk.
-- Flag suspiciously complex or low-quality generated changes.
+The system SHALL ship these canonical skills as directories (not flat single files):
 
-### 8.5 Test Quality Validation
+| Skill ID | Primary gate / concern |
+|---|---|
+| `requirement-alignment` | Requirements / intent vs change |
+| `architecture-patterns` | Design and architectural fit |
+| `ai-code-detection` | AI-assisted review-depth rubric |
+| `testing-patterns` | Test quality beyond coverage |
+| `security-patterns` | Security and unsafe defaults |
+| `code-quality` | Maintainability and review depth |
+| `performance-validation` | Performance and reliability risk |
 
-The system shall evaluate test quality beyond simple pass/fail and coverage percentage.
+Each skill SHALL include: `SKILL.md`, phase playbooks, `coverage/COVERAGE.md`, `coverage/GAPS.md`, annotated examples, and references. Executable `tooling/` is optional and not required for v1.
 
-Requirements:
-- Check whether tests cover required happy paths and failure paths.
-- Review tests for edge cases, boundary conditions, and null/empty inputs.
-- Look for brittle tests or weak assertions.
-- Validate whether tests align with requirement acceptance criteria.
-- Detect skipped, xfailed, or inadequate tests that should block merge.
+### 8.3 Agent set
 
-### 8.6 Design and Architecture Alignment
+The system SHALL ship these roles (each with a feedback counterpart except where noted):
 
-The system shall detect whether change implementation matches design intent.
+- `qa.orchestrator` — route work, merge findings, produce the consolidated recommendation
+- `qa.researcher` — requirement alignment
+- `qa.architect` — design and architecture
+- `qa.tester` — test quality
+- `qa.security-reviewer` — security and reliability
+- `qa.code-reviewer` — code quality
+- `qa.ai-detector` — apply the AI-assisted review-depth rubric (not vendor fingerprinting)
+- `qa.critic` — conflicts, blind spots, over/under-claiming
 
-Requirements:
-- Validate code against expected patterns and architectural boundaries.
-- Detect anti-patterns and code duplication where relevant.
-- Alert reviewers when a change introduces risky architectural drift.
-- Support rule sets by framework or stack.
+Gate instruction files SHALL exist for: requirement, design, AI-risk, test quality, security, PR review, deployment readiness. They are sequential policy checks after specialist analysis, not CI jobs.
 
-### 8.7 Security and Reliability Checks
+### 8.4 Instructions
 
-The system shall support risk checks for security and production reliability.
+The pack SHALL include operating instructions that cover:
 
-Requirements:
-- Check for secrets leakage, unsafe input handling, or unsafe defaults.
-- Validate API error handling and timeout patterns.
-- Detect missing validation, unsafe deserialization, or insecure auth patterns.
-- Flag risky dependency or configuration changes.
+- when to invoke which agent and skill,
+- parallel specialist analysis vs sequential gates,
+- finding schema and confidence bands,
+- read-only behavior (analyze and recommend; do not modify host code),
+- how host repos should reference the pack.
 
-### 8.8 Reporting and Feedback
+### 8.5 Finding and report contract
 
-The system shall convert checks into human-readable, actionable reports.
+Every finding SHALL include: evidence (file/lines or explicit gap), severity, confidence, rationale, recommendation, and `skill_applied` using the canonical skill ID (for example `requirement-alignment#acceptance-criteria`).
 
-Requirements:
-- Produce a summary for each PR or change set.
-- Highlight fail/pass status by quality area.
-- Include risk explanations and improvement suggestions.
-- Provide links from PR/pipeline context to relevant standards or rule definitions.
+The orchestrator SHALL produce one consolidated report with gate statuses (pass / warn / fail as **recommendations**), risk summary, and required human actions.
 
-### 8.9 Multi-Agent Review Workflow
+### 8.6 Requirement alignment (no Jira required)
 
-QualityAI shall support a structured multi-agent review model inspired by specialist and peer-feedback patterns.
+v1 SHALL work from whatever requirement text the host provides (ticket paste, PR description, `docs/`, acceptance criteria in-repo). Jira sync is an addon. The skill SHALL still flag missing, untestable, or drifted intent.
 
-Requirements:
-- Maintain a primary orchestrator to manage review flow.
-- Support specialist agents for research, architecture, testing, security, and code review.
-- Support paired feedback agents that validate and critique the primary agent output.
-- Run independent review tasks in parallel where possible.
-- Run sequential quality gates after specialist analysis.
-- Produce one consolidated quality recommendation with rationale and confidence scores.
+### 8.7 Platform-agnostic core
 
-### 8.10 Platform-Agnostic Core with Optional Integrations
+Core skills and agents SHALL NOT depend on GitHub Actions, Jenkins, or Jira APIs. Optional integrations MUST be layered later as adapters that consume the same report contract.
 
-QualityAI shall be designed as a core platform that is not tied to GitHub or any single CI/CD tool.
+## 9. Non-functional requirements
 
-Requirements:
-- Core engine and rules should operate independently of GitHub Actions, Jenkins, or Jira.
-- Optional integrations shall be layered on top of the core engine.
-- The core engine must expose a CLI or API that can integrate with multiple pipelines and tooling environments.
-- GitHub Actions and other workflow integrations should be treated as adapters, not as the core product.
+### 9.1 Explainability
 
-## 9. Non-Functional Requirements
+Findings MUST be reproducible in the sense that the same skill and evidence trail can be followed by a human. Failing recommendations MUST name the skill (and section) violated.
 
-### 9.1 Reliability
+### 9.2 Portability
 
-- Quality checks must be deterministic and explainable wherever possible.
-- Results should be reproducible for the same code and ruleset.
-- Failing checks must be traceable to the exact rule or policy violated.
-
-### 9.2 Scalability
-
-- The platform must support multiple repositories and teams.
-- It should support both small and large PRs without excessive review latency.
-- Rule evaluation must be efficient enough for CI/CD integration.
+The pack MUST be usable in small and large repos with only a markdown-capable agent. No required compile step for v1.
 
 ### 9.3 Usability
 
-- PR comments and summaries must be concise, actionable, and easy to understand.
-- Reviewers should not be flooded with noise or low-value findings.
-- Actionable findings should be prioritized by severity and risk.
+Reports MUST be concise and severity-ordered. Noise is a defect.
 
 ### 9.4 Security
 
-- The platform must protect repository and issue data.
-- No secrets or sensitive customer data should be stored in plain text.
-- Access control and auditability should be supported for enterprise use.
+v1 agents are read-only relative to the host codebase. They MUST NOT instruct silent code mutation, merge, or deploy. They MUST NOT request that secrets be pasted into chat.
 
 ### 9.5 Extensibility
 
-- The system must support custom rules, custom integrations, and multiple languages.
-- It should be designed to evolve with organizational requirements.
+New skills and agents MAY be added without renaming existing IDs. Addons MUST NOT fork methodology into workflow YAML.
 
-## 10. Key User Stories
+## 10. Key user stories
 
-### 10.1 Requirement-Driven Quality
+### 10.1 Portable pack
 
-- As a product owner, I want QA standards derived from Jira acceptance criteria, so that quality is enforced against the real requirement.
-- As a team lead, I want quality policies tied to each feature, so that delivery criteria are consistent.
+- As a tech lead, I want to copy `.qualityai/` into a service repo so review quality does not depend on who is on the PR.
+- As a developer using an AI coding agent, I want that agent to follow published skills instead of improvising a checklist.
 
-### 10.2 AI-Generated Code Safety
+### 10.2 Requirement-driven quality
 
-- As a reviewer, I want AI-generated code to be identified and treated with stricter review scrutiny, so that automation does not create silent risk.
-- As an engineering manager, I want to reduce low-quality AI output landing in production, so that delivery risk is controlled.
+- As a product owner, I want acceptance criteria used in review even when Jira is not connected.
+- As a team lead, I want drift from intent called out with evidence.
 
-### 10.3 Improved Review Quality
+### 10.3 AI-assisted scrutiny
 
-- As a reviewer, I want automated guidance on missing validations and risky patterns, so that I can focus on meaningful issues.
-- As a senior engineer, I want PR summaries that explain business and technical risk, so that I can review efficiently.
+- As a reviewer, I want large or generic AI-assisted diffs to trigger a stricter rubric, without fake certainty about which model wrote the code.
 
-### 10.4 Test Integrity
+### 10.4 Test integrity
 
-- As a QA engineer, I want test quality to be assessed beyond coverage, so that we avoid false confidence.
-- As a developer, I want tests to reflect edge cases and failure paths, so that regressions are caught.
+- As a QA engineer, I want weak assertions, missing failure paths, and skipped tests called out beyond coverage percentage.
 
-### 10.5 Governance and Standards
+### 10.5 Later addons
 
-- As a platform owner, I want org-wide rules to be codified, so that quality standards are enforced consistently.
-- As a compliance stakeholder, I want rule evidence and traceability, so that auditability is easier.
+- As a platform engineer, I want a GitHub Action that posts the same report the agent already produces.
+- As a delivery lead, I want Jira AC imported into the same requirement-alignment skill.
+- As an SRE or QA lead, I want GCO metrics used for SLOs/alerts, load expectations, and test-failure RCA later.
 
-### 10.6 Agentic Review Workflow
+## 11. Quality gates (logical, not CI)
 
-- As a reviewer, I want multiple specialized agents to assess different concerns, so that the final review is deeper and more balanced.
-- As a team lead, I want the system to cross-check agent findings via feedback loops, so that false positives and hallucinations are reduced.
+These gates are instruction-level in v1:
 
-## 11. Quality Gates
+1. **Requirements** — is the intent clear, testable, and reflected in the change?
+2. **Design** — does implementation match expected architecture?
+3. **AI-assisted risk** — does the change warrant deeper review?
+4. **Test quality** — do tests validate behavior and risk, not just pass?
+5. **Security and reliability** — are unsafe patterns and missing validation called out?
+6. **PR review** — is there a high-signal summary for a human?
+7. **Deployment readiness** — cumulative go/no-go **recommendation**.
 
-QualityAI will operate as a set of quality gates across the lifecycle.
+## 12. Functional priorities
 
-### 11.1 Gate 1: Requirements Gate
+### Phase 1 — v1 pack (current)
 
-Validate whether a requirement is sufficiently clear, testable, and actionable.
+- Complete agent set (including feedback pairs and critic).
+- Complete canonical skill directories.
+- Instructions and consumption contract.
+- Finding/report schema.
+- Host-repo onboarding documented in README.
 
-### 11.2 Gate 2: Design Gate
+### Phase 2 — addons
 
-Check alignment between implementation plan/design and requirement intent.
+- GitHub workflows / Actions.
+- Jira requirement intake skill/adapter.
+- GCO (GCP Monitoring / Console): SLOs and alerts; performance/load requirement derivation from service metrics; test-failure RCA and reporting from those metrics.
+- Optional CLI that emits the same report schema.
 
-### 11.3 Gate 3: AI Code Risk Gate
+### Phase 3 — platform extras
 
-Assess whether code is AI-generated and if the change requires stronger validation or review.
+- Additional CI adapters (Jenkins, GitLab, Slack).
+- Org rule packs, dashboards, audit log storage.
+- Deterministic scanners behind skills where they add signal.
 
-### 11.4 Gate 4: Test Quality Gate
+## 13. Success metrics (v1)
 
-Check if tests meaningfully validate behavior and edge cases.
+v1 succeeds when:
 
-### 11.5 Gate 5: Security and Reliability Gate
+- A host repo can run a specialist review using only the vendored pack.
+- Findings cite skill ID + evidence; agents do not duplicate skill logic.
+- A human can follow a finding back to a playbook section.
+- The AI-assisted rubric increases review depth without claiming authorship as fact.
+- Adding GitHub/Jira/GCO later does not require renaming skills or agents.
 
-Validate that risky areas are covered and safe patterns are used.
+## 14. Risks and constraints
 
-### 11.6 Gate 6: PR Review Gate
+- Over-broad skills create review fatigue — coverage/GAPS.md is mandatory.
+- AI-authorship claims will be wrong — v1 forbids them as blocking facts.
+- Inconsistent names across docs would break consumption — canonical IDs in this file win.
+- Markdown-only review is non-deterministic across models — instructions and examples must be strict; a later engine can add determinism.
+- The pack must stay practical; it augments human judgment.
 
-Ensure reviewers receive a high-signal summary and actionable risk findings.
+## 15. Future considerations
 
-### 11.7 Gate 7: Deployment Readiness Gate
-
-Provide final go/no-go guidance based on cumulative quality state.
-
-## 12. Functional Priorities (MVP)
-
-### Phase 1: Foundation
-
-- Repository integration and PR metadata ingestion
-- Basic quality rules engine
-- GitHub PR quality summary
-- Basic AI-generated code detection heuristic
-- Initial risk-based review comments
-- Basic multi-agent orchestration skeleton for specialist reviews
-
-### Phase 2: Standards and Test Quality
-
-- Project-specific policy configuration
-- Test quality analysis
-- Requirement-to-change traceability
-- Improved AI review rubric
-- Feedback loops between primary and validating agents
-
-### Phase 3: Lifecycle Governance
-
-- Jira integration
-- Epic and requirement traceability dashboards
-- Deployment readiness gate
-- Organizational rule sets and audit trail
-- Plugin architecture for GitHub Actions, Jenkins, GitLab, and other tooling
-
-## 13. Success Metrics
-
-The platform will be considered successful when:
-
-- AI-generated code is more likely to be caught before merge.
-- Review quality improves in consistency and depth.
-- Teams reduce low-quality or risky PR merges.
-- Requirement-to-code traceability improves.
-- Test quality is measured beyond coverage percentages.
-- Enforcement of standards becomes less dependent on individual reviewer memory.
-- Multi-agent review output improves precision while maintaining explainability.
-
-## 14. Risks and Constraints
-
-### 14.1 Risks
-
-- Overly aggressive rules may create review fatigue.
-- AI-generated code detection may produce false positives.
-- Teams may have inconsistent standards across repositories.
-- Generic quality rules may not fit all domain-specific contexts.
-- Agent-based review may become noisy without feedback validation and gating.
-
-### 14.2 Constraints
-
-- The platform must be practical and developer-friendly.
-- It should augment, not replace, human judgment.
-- Quality checks must remain explainable and actionable.
-- The core engine should remain portable and optional-integration oriented.
-
-## 15. Future Considerations
-
-- Support for multiple issue trackers beyond Jira
-- Enterprise audit and governance features
-- Integration with broader CI/CD and deployment workflows
-- Domain-specific rule packs for fintech, healthcare, SaaS, and other regulated ecosystems
-- Review analytics and quality trends over time
-- Expanded agent library for planning, critic, executor, security, and implementation roles
-- More advanced feedback and consensus mechanisms across agent types
+- More issue trackers than Jira.
+- Domain skill packs (fintech, healthcare, SaaS).
+- Review analytics via GCO.
+- Expanded agent library only when a new concern does not fit an existing skill.
 
 ## 16. Conclusion
 
-QualityAI is designed to close the gap between fast AI-assisted development and disciplined software quality assurance. The goal is not to slow teams down, but to make quality engineering more automatic, more consistent, and more trustworthy.
-
-The product will help teams review code with better intent, stronger standards, and more meaningful validation—especially in the age of AI-generated code and increasingly high-volume PR workflows.
-
-This is the foundation for a system that turns engineering standards into operational quality gates and puts deep review intelligence where it is needed most.
+QualityAI v1 is the reusable QA brain: skills, agents, and instructions in a folder any repo can vendor. The platform around it — GitHub, Jira, GCO, CLI — is intentionally later, so the methodology stays portable and the addons stay thin.

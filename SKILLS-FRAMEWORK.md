@@ -1,12 +1,34 @@
 # QualityAI Skills Framework
 
+## Canonical IDs (v1)
+
+Use these directory names and IDs everywhere (agents, findings, docs). Do not use aliases such as `test-quality-patterns` or flat `skills/*.md`.
+
+| Skill ID | Path |
+|---|---|
+| `requirement-alignment` | `.qualityai/skills/requirement-alignment/` |
+| `architecture-patterns` | `.qualityai/skills/architecture-patterns/` |
+| `ai-code-detection` | `.qualityai/skills/ai-code-detection/` |
+| `testing-patterns` | `.qualityai/skills/testing-patterns/` |
+| `security-patterns` | `.qualityai/skills/security-patterns/` |
+| `code-quality` | `.qualityai/skills/code-quality/` |
+| `performance-validation` | `.qualityai/skills/performance-validation/` |
+
+Cite findings as `skill-id#section` (example: `testing-patterns#error-path-coverage`).
+
+`ai-code-detection` is a **review-depth rubric** for likely AI-assisted or high-volume generated changes. It does not claim Copilot/Claude/human authorship as fact.
+
+Executable `tooling/` under a skill is optional and **not required for v1**. v1 skills are markdown: `SKILL.md`, playbooks, coverage/gaps, examples, references.
+
+Agents live at `.qualityai/agents/qa.[role].agent.md` and `.qualityai/agents/qa.[role].agent.feedback.md`.
+
 ## Overview
 
 QualityAI skills are reusable, expertly-designed methodologies for solving specific quality problems. A skill is not just a document; it is a complete system including:
 
 - **Playbooks**: Step-by-step workflows for different phases (create, update, review, refactor, plan, analyze, failure-analysis)
 - **Examples**: Real-world QA scenarios with proven solutions
-- **Tooling**: Shared utilities and scripts that multiple skills use
+- **Tooling** (optional, post-v1): Shared utilities and scripts that multiple skills use
 - **Coverage**: Explicit documentation of what the skill covers and its limitations
 - **SKILL.md**: The entry point that agents use to invoke the skill
 
@@ -22,7 +44,7 @@ This design ensures:
 ## Skills Directory Structure
 
 ```text
-skills/
+.qualityai/skills/
 ├── README.md                                    # Skill ecosystem overview
 │
 ├── testing-patterns/
@@ -200,7 +222,7 @@ skills/
 │   │   └── traceability-mapper.ts
 │   │
 │   └── references/
-│       ├── jira-integration.md
+│       ├── jira-integration.md                 # later addon; v1 uses in-repo / pasted AC
 │       ├── acceptance-criteria-format.md
 │       └── traceability-model.md
 │
@@ -213,29 +235,24 @@ skills/
 │   │
 │   ├── playbook/
 │   │   ├── detect/
-│   │   │   └── PLAYBOOK.md                     # Identify AI-generated code
+│   │   │   └── PLAYBOOK.md                     # Identify AI-generated code — review-depth only
 │   │   ├── risk-assessment/
 │   │   │   └── PLAYBOOK.md                     # Assess risk level
 │   │   └── review-strategy/
 │   │       └── PLAYBOOK.md                     # How to review AI code
 │   │
 │   ├── examples/
-│   │   ├── copilot-signature.md
-│   │   ├── claude-signature.md
-│   │   ├── human-written-code.md
-│   │   └── mixed-generated-human.md
+│   │   ├── high-volume-generic-diff.md
+│   │   ├── missing-edge-cases.md
+│   │   ├── mixed-generated-human.md
+│   │   └── well-reviewed-assisted-change.md
 │   │
-│   ├── tooling/
-│   │   ├── pattern-detector.ts                 # Detects Copilot/Claude patterns
-│   │   ├── entropy-calculator.ts               # Code diversity and entropy
-│   │   ├── confidence-scorer.ts                # Confidence in AI detection
-│   │   └── risk-classifier.ts                  # Risk level for generated code
+│   ├── tooling/                                # optional; not required for v1
 │   │
 │   └── references/
-│       ├── copilot-patterns.md                 # Known Copilot code signatures
-│       ├── claude-patterns.md                  # Known Claude code signatures
-│       ├── chatgpt-patterns.md                 # Known ChatGPT patterns
-│       └── false-positive-mitigation.md        # Avoid false positives
+│       ├── review-depth-rubric.md
+│       ├── high-volume-change-signals.md
+│       └── false-positive-mitigation.md        # Do not claim which model wrote the code
 │
 └── performance-validation/
     ├── SKILL.md
@@ -339,7 +356,7 @@ languages: [typescript, python, java]
 
 ## How Agents Use This Skill
 
-[How qa.tester.agent.md or qa.security-reviewer.agent.md invokes this]
+[How `.qualityai/agents/qa.tester.agent.md` or `qa.security-reviewer.agent.md` invokes this]
 ```
 
 ---
@@ -511,12 +528,14 @@ Real, annotated examples that show:
 - Bad patterns (❌)
 - Edge cases (⚠️)
 
-### 4. Build Tooling
+### 4. Build Tooling (optional; not required for v1)
 
 Shared utilities that:
 - Analyze code systematically
 - Produce structured output
 - Are reusable by multiple agents and skills
+
+v1 ships without requiring these scripts.
 
 ### 5. Document Coverage
 
@@ -529,7 +548,7 @@ Be explicit about:
 
 ## How Agents Use Skills
 
-**Example: qa.tester.agent.md**
+**Example: `.qualityai/agents/qa.tester.agent.md`**
 
 ```markdown
 # qa.tester.agent.md
@@ -537,17 +556,17 @@ Be explicit about:
 You are a test quality reviewer.
 
 Your job:
-1. Delegate to skills/testing-patterns skill
+1. Delegate to skill `testing-patterns` (`.qualityai/skills/testing-patterns/SKILL.md`)
 2. Interpret the findings
-3. Make a go/no-go decision
+3. Make a go/no-go recommendation (humans decide merge)
 
 When analyzing test quality:
 - Use skills/testing-patterns/playbook/review/PLAYBOOK.md
-- Run tooling/test-quality-checker.ts
+- Do not require tooling/ in v1; use playbooks, examples, and references
 - Consult examples/good-test-example.md and examples/bad-test-example.md
 - Reference skills/testing-patterns/references/edge-case-taxonomy.md for completeness
 
-Report your findings with evidence, confidence, and rationale.
+Report your findings with evidence, confidence, rationale, and skill_applied: testing-patterns#...
 ```
 
 ---

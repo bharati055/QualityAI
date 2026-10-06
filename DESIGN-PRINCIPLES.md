@@ -2,7 +2,70 @@
 
 ## Overview
 
-This document codifies the operating principles for QualityAI's multi-agent system. These principles ensure the platform is reliable, maintainable, scalable, and auditable. They are drawn from 18+ years of QA leadership and modern agentic AI best practices.
+This document codifies the operating principles for QualityAI's multi-agent system. These principles ensure the pack is maintainable, scalable, and auditable.
+
+v1 is markdown-only under `.qualityai/` (agents, skills, instructions). Tools, GitHub/Jira APIs, and telemetry are later addons. Agents still delegate to skills; they never inline skill logic.
+
+## 0. AI-Era Quality Strategy
+
+These principles define *why* QualityAI exists in the age of AI-assisted delivery and AI-facing products. Operating principles in later sections define *how* agents and skills behave.
+
+### 0.1 Define the AI-Era Quality Strategy
+
+**Principle:** Establish an end-to-end quality framework that spans **human agents and AI agents**, evolving QA from traditional sample-based auditing toward **continuous, AI-enabled quality management**.
+
+**What this means:**
+
+- Quality is not a periodic audit sample of a few PRs or chats; it is an ongoing system of gates, skills, and feedback loops.
+- Both human reviewers and AI coding/review agents operate under the same standards, evidence rules, and gate model.
+- Continuous management covers requirements → design → implementation → tests → security → review → deployment readiness (and later production signals such as GCO).
+
+**Implications for the pack:**
+
+- Skills and gates encode continuous review methodology, not one-off checklists.
+- Feedback agents and critic exist to keep AI review honest over time.
+- Humans remain decision-makers; AI increases coverage and consistency, not authority to merge alone.
+
+### 0.2 Establish AI Quality & Testing Frameworks
+
+**Principle:** Design and maintain comprehensive **evaluation benchmarks**, **testing protocols**, and **human-in-the-loop (HITL)** workflows to verify AI agents, support bots, and recommendation engines operate as intended.
+
+**What this means:**
+
+- AI systems under test (coding agents, support bots, recommenders, etc.) need explicit evaluation criteria—not only unit tests of the surrounding app code.
+- HITL workflows define when a human must confirm, override, or escalate AI output before it affects users or production.
+- Benchmarks and protocols should be versioned in skills/playbooks so they are auditable and reusable across repos.
+
+**Implications for the pack:**
+
+- `testing-patterns`, `requirement-alignment`, and related skills must cover AI-system behavior where the host product includes AI features.
+- Gate recommendations and finding schema support HITL: agents recommend; humans decide.
+- Later addons (CI, GCO) can feed benchmarks with automated signals; v1 documents the frameworks in markdown.
+
+### 0.3 Audit AI Outputs & User Interactions
+
+**Principle:** Continuously evaluate AI-generated outputs for **intent fulfillment**, **safety**, **tone**, and **hallucination prevention**.
+
+**Examples of outputs to audit** (domain-specific hosts will vary):
+
+- Automated support chats
+- Tour / product recommendation accuracy
+- Booking or transactional updates generated or mediated by AI
+- AI-assisted code and PR summaries (via this pack’s review agents)
+
+**What this means:**
+
+- Every material AI output should be checkable against stated intent (requirements, user ask, policy).
+- Safety includes security, privacy, harmful content, and incorrect irreversible actions.
+- Tone and brand/voice matter for user-facing agents; hallucinations must be detected or constrained with evidence and escalation.
+
+**Implications for the pack:**
+
+- `ai-code-detection` raises review depth for AI-assisted *code*; product hosts should add or extend skills for AI *user-facing* outputs using the same evidence and HITL rules.
+- Findings must cite evidence and confidence; unverifiable claims are over-claiming.
+- Continuous audit is the goal; sample-only review of AI chats/recommendations is insufficient as volume grows.
+
+---
 
 ## 1. Strict Separation of Concerns (SoC)
 
@@ -16,19 +79,19 @@ Each component should have one and only one responsibility. No duplication of lo
 - Agents own orchestration, routing, and decision logic
 - Agents call skills; they never re-implement skill logic inline
 - Agents interpret skill outputs and make go/no-go decisions
-- Example: `qa.tester.agent.md` decides whether to run edge-case analysis, but delegates to `skills/edge-case-detection.md` for actual detection
+- Example: `qa.tester.agent.md` decides whether to run edge-case analysis, but delegates to `testing-patterns` (`.qualityai/skills/testing-patterns/`) for actual detection
 
 **Skill Level (Reusable Expertise)**
 - Skills encapsulate proven techniques and methodologies
 - Each skill solves ONE specific problem
 - Skills are language-agnostic where possible; they document the "how" once
-- Example: `skills/security-patterns.md` defines password handling, secrets detection, input validation—once. Used by `qa.security-reviewer.agent.md` and `qa.code-reviewer.agent.md`
+- Example: skill `security-patterns` defines password handling, secrets detection, input validation—once. Used by `qa.security-reviewer.agent.md` and `qa.code-reviewer.agent.md`
 
 **Prompt Level (LLM Instruction)**
 - Prompts instruct LLMs on how to apply skills
 - Prompts do not re-document skills; they reference them
 - Prompts focus on tone, context, and output format
-- Example: `prompts/qa.security-reviewer.md` says "Use skills/security-patterns.md to check for [X]" rather than re-listing all security patterns
+- Example: instructions say "Use skill `security-patterns`" rather than re-listing all security patterns
 
 ### 1.3 Violation Detection
 
@@ -43,19 +106,15 @@ Red flags that SoC is being violated:
 
 ```
 Good:
-├── agents/qa.security-reviewer.agent.md
-│   └── Calls: skills/security-patterns.md
-│   └── Calls: skills/input-validation.md
-│   └── Calls: skills/secret-detection.md
+├── .qualityai/agents/qa.security-reviewer.agent.md
+│   └── Delegates to: skills/security-patterns/
 │
-├── skills/
-│   ├── security-patterns.md           # Single source of truth
-│   ├── input-validation.md            # Single source of truth
-│   └── secret-detection.md            # Single source of truth
+├── .qualityai/skills/
+│   └── security-patterns/             # Single source of truth (folder + SKILL.md)
 │
-└── prompts/qa.security-reviewer.md
-    └── References: skills/security-patterns.md
-    └── Instructs: Use these skills to analyze code
+└── .qualityai/instructions/
+    └── References: security-patterns
+    └── Instructs: Use this skill to analyze code
 
 Bad:
 ├── agents/qa.security-reviewer.agent.md
@@ -115,15 +174,13 @@ qa.security-reviewer.agent.md
   ├─ Delegate: "Apply security-patterns skill"
   │     |
   │     v
-  │   skills/security-patterns.md
-  │     ├─ Check: secret detection
-  │     │   └─ Delegate to: tools/secret-detector.ts
+  │   skills/security-patterns/
+  │     ├─ Check: secret detection (playbook + references in v1)
   │     ├─ Check: input validation
-  │     │   └─ Delegate to: tools/validation-checker.ts
   │     └─ Return: {secrets_found: [...], validation_gaps: [...]}
+  │     Optional later: tools/secret-detector.ts
   │
-  ├─ Delegate: "Apply input-validation skill"
-  │     └─ (similar pattern)
+  ├─ Do not invent a second skill for the same concern
   │
   ├─ Aggregate findings
   ├─ Make decision: PASS / FAIL / WARN
@@ -147,13 +204,13 @@ You are a test quality reviewer.
 ```markdown
 # qa.tester.agent.md
 You are a test quality reviewer. Your job is to:
-1. Delegate to skills/test-quality-patterns.md
+1. Delegate to `.qualityai/skills/testing-patterns/`
 2. Interpret the findings
-3. Make a go/no-go decision
+3. Make a go/no-go **recommendation** (humans merge)
 4. Explain your reasoning
 
 Use this skill:
-- skills/test-quality-patterns.md (comprehensive test evaluation methodology)
+- `testing-patterns` (`.qualityai/skills/testing-patterns/SKILL.md`)
 ```
 
 ---
@@ -222,10 +279,10 @@ Agents and skills should be named by their role and function, not by person, tea
 - `qa.architect.agent.md` (not `qa.bob-design-reviewer.agent.md`)
 - `qa.security-reviewer.agent.md` (not `qa.security-team-agent.agent.md`)
 
-**Skills:** `[domain]-[methodology].md`
-- `skills/security-patterns.md` (not `skills/alice-security-expertise.md`)
-- `skills/test-quality-patterns.md` (not `skills/bob-testing-framework.md`)
-- `skills/architecture-patterns.md` (not `skills/john-architecture-principles.md`)
+**Skills:** folder `skills/<skill-id>/` with `SKILL.md`
+- `skills/security-patterns/` (not `skills/alice-security-expertise.md`)
+- `skills/testing-patterns/` (not `skills/bob-testing-framework.md`)
+- `skills/architecture-patterns/` (not `skills/john-architecture-principles.md`)
 
 **Feedback Agents:** `qa.[role].agent.feedback.md`
 - `qa.researcher.agent.feedback.md` (reviewer of researcher findings)
@@ -256,10 +313,10 @@ Agents and skills should be named by their role and function, not by person, tea
 
 ✅ **Right:**
 ```
-├── agents/qa.orchestrator.agent.md
-├── agents/qa.researcher.agent.md
-├── skills/test-quality-patterns.md
-└── tools/code-analyzer.ts
+├── .qualityai/agents/qa.orchestrator.agent.md
+├── .qualityai/agents/qa.researcher.agent.md
+├── .qualityai/skills/testing-patterns/
+└── tools/code-analyzer.ts              # later; not required for v1
 ```
 
 ---
@@ -297,7 +354,7 @@ Every agent output should follow this structure:
   "confidence": 0.95,
   "rationale": "User input is used directly in a payment calculation without validation. This could allow negative amounts, strings, or injection attacks.",
   "recommendation": "Add input validation before processing: validate(amount, 'positive-number')",
-  "skill_applied": "skills/security-patterns.md#input-validation"
+  "skill_applied": "security-patterns#input-validation"
 }
 ```
 
@@ -332,7 +389,7 @@ Severity: high
 Confidence: 98%
 Rationale: Payment processing is critical path. Untested error paths could crash in production.
 Recommendation: Add error path tests for amount validation and API timeout scenarios
-Skill applied: skills/test-quality-patterns.md#error-path-coverage
+Skill applied: testing-patterns#error-path-coverage
 ```
 
 ---
@@ -345,30 +402,23 @@ QualityAI agents are analysis and recommendation engines. They must never modify
 
 ### 6.2 Implementation
 
-**What Agents CAN Do:**
-- ✅ Read code, tests, requirements
-- ✅ Analyze patterns and risks
-- ✅ Generate reports and recommendations
-- ✅ Post comments on PRs (informational only)
-- ✅ Update issue tracking with findings
-- ✅ Log audit trails for compliance
+**What Agents CAN Do (v1):**
+- Read code, tests, requirements in the host repo
+- Analyze patterns and risks
+- Generate reports and recommendations in chat or files the human requested
 
 **What Agents CANNOT Do:**
-- ❌ Modify code files
-- ❌ Delete branches or commits
-- ❌ Merge PRs
-- ❌ Deploy to production
-- ❌ Modify infrastructure
-- ❌ Delete logs or audit trails
-- ❌ Change permissions or access control
+- Modify host code, merge, or deploy as part of a QualityAI review
+- Delete branches, commits, logs, or audit trails
+- Change permissions
+- Post to GitHub or Jira as a required v1 step (that is a later addon)
+- Claim which AI product authored a diff as a blocking fact
 
 ### 6.3 Security Constraints
 
-**API Permissions:**
-- GitHub: read-only access to repos, PRs, issues
-- Jira: read-only access to tickets and requirements
-- Jenkins: read-only access to build logs and artifacts
-- No write access anywhere in CI/CD pipeline
+**Integrations (later addons, not v1):**
+- GitHub/Jira/Jenkins access is defined by those addons. v1 needs no API tokens.
+- When addons exist, they should be read-only unless the host explicitly enables posting a report.
 
 **Data Access:**
 - Agents can read source code, configs, logs
@@ -456,7 +506,7 @@ Week 1: Deploy qa.tester.agent
   └─ Precision: 85%, Recall: 78%
 
 Week 2: Analyze false positives + misses
-  └─ Adjust: skills/test-quality-patterns.md
+  └─ Adjust: skills/testing-patterns/
   └─ Adjust: prompts/qa.tester.md
 
 Week 3: Re-measure
@@ -485,7 +535,7 @@ Each agent should have a `feedback-log.md`:
 
 ## Missed Findings (Human Found What We Missed)
 - Issue: Agent missed 3 async timeout scenarios
-  └─ Action: Updated skills/test-quality-patterns.md#async-handling
+  └─ Action: Updated testing-patterns#async-handling
 
 ## Confidence Calibration
 - 95% confident findings: 92% accuracy (well-calibrated)
@@ -515,7 +565,7 @@ All agent outputs must include:
   "feedback_agent_review": "qa.security-reviewer.feedback",
   "confidence": 0.94,
   "audit_trail": [
-    "qa.security-reviewer: Applied skill/security-patterns → 3 findings",
+    "qa.security-reviewer: Applied security-patterns → 3 findings",
     "qa.security-reviewer.feedback: Validated all 3 findings → Confidence raised from 0.88 to 0.94",
     "qa.critic: Reviewed for missing context → No escalation needed"
   ]
@@ -535,6 +585,9 @@ All agent outputs must include:
 
 | Principle | What It Means | Why It Matters |
 |---|---|---|
+| **AI-Era Quality Strategy** | End-to-end quality across human + AI agents; continuous management over sample audits | Scales quality with AI-assisted delivery |
+| **AI Quality & Testing Frameworks** | Benchmarks, protocols, and HITL for AI agents/bots/recommenders | Verifies AI systems operate as intended |
+| **Audit AI Outputs** | Continuous check of intent, safety, tone, hallucination | Protects users and trust in AI-generated interactions |
 | **Separation of Concern** | One responsibility per component | Maintainability, no duplication, clear ownership |
 | **Delegation-First** | Agents → Skills → Tools | Reusability, scalability, clear hierarchy |
 | **Staff-Level Seniority** | Every agent thinks like a principal engineer | Deep insights, not surface-level checks |
@@ -560,6 +613,7 @@ Before deploying a new agent:
 - [ ] All outputs logged with audit trail
 - [ ] Feedback loop metrics tracked
 - [ ] Documentation updated with new agent role and responsibilities
+- [ ] AI-era strategy considered: continuous quality (not sample-only), HITL where AI outputs affect users, hallucination/safety/intent checks when auditing AI outputs
 
 ---
 

@@ -2,775 +2,348 @@
 
 ## 1. Overview
 
-QualityAI is a platform for enforcing software quality from requirement intent to deployment readiness. Its goal is to protect engineering teams from low-quality AI-generated code, weak review quality, and shallow validation that passes basic automation while still introducing risk.
+QualityAI v1 is a **portable markdown pack**: agents, skills, and instructions that a host repository vendors under `.qualityai/`. An AI coding agent in that repo reads the pack and runs a specialist quality review.
 
-The architecture is intentionally split into two layers:
+The platform split remains:
 
-1. Core QualityAI engine: platform-agnostic, portable, and reusable across any repository, pipeline, or organization.
-2. Integration addons: thin adapters for GitHub Actions, Jira, Jenkins, GitLab, Gatling, Slack, and similar tools.
+1. **v1 core pack** — tool-agnostic, copyable, no CI or tracker required.
+2. **Later addons** — GitHub Actions/workflows, Jira intake, GCO telemetry, optional CLI/rules engine. Addons consume the pack’s report contract; they do not own methodology.
 
-The design follows a quality gate model with a specialist multi-agent review framework, combined with feedback loops to reduce false positives and increase review depth.
+## 2. Design goals
 
-## 2. Design Goals
+- Start from requirements (whatever text the host provides), not only from tests.
+- Treat likely AI-assisted changes with a stricter **review-depth rubric**, not a fake authorship detector.
+- Keep standards in skills; keep agents thin.
+- Stay independent of GitHub, Jira, and GCO in v1.
+- Preserve a stable layout and IDs so addons can attach later.
 
-- Start quality validation from requirements, not just code changes.
-- Treat AI-generated code as a higher-risk category that deserves stricter scrutiny.
-- Make quality standards explicit, codified, and reusable.
-- Preserve deep human review by providing prioritized and actionable insights.
-- Work across CI/CD systems without vendor lock-in.
-- Keep the core product portable, installable, and easy to adapt.
-
-## 3. High-Level Architecture
+## 3. High-level architecture (v1)
 
 ```text
-+----------------------------------------------------------------------------------+
-|                               QualityAI Platform                                 |
-|                                                                                  |
-|  +---------------------------+   +--------------------------------------------+    |
-|  |   Requirements Layer       |   |   Core Review Engine                       |    |
-|  | - Jira integration         |   | - Rule engine                              |    |
-|  | - Acceptance criteria     |   | - Test quality evaluator                   |    |
-|  | - Requirement mapping      |   | - Security and reliability checks          |    |
-|  | - Traceability store       |   | - Architecture validation                  |    |
-|  +---------------------------+   | - AI-code detection                        |    |
-|                                      | - PR risk summarizer                       |    |
-|  +---------------------------+   | - Reporting and quality score             |    |
-|  |   Multi-Agent Orchestration|   +--------------------------------------------+    |
-|  | - Orchestrator             |                         |                         |
-|  | - Specialist agents        |                         |                         |
-|  | - Feedback agents         |                         |                         |
-|  | - Gates and consensus     |                         |                         |
-|  +---------------------------+                         |                         |
-|                                                          |                         |
-|        +---------------------------+   +---------------------------+                 |
-|        | GitHub Actions Addon      |   | Jenkins Addon            |                 |
-|        | Jira Addon                |   | GitLab CI Addon          |                 |
-|        | Gatling Addon             |   | Slack Addon              |                 |
-|        +---------------------------+   +---------------------------+                 |
-+----------------------------------------------------------------------------------+
+Host repository
+  AGENTS.md (or equivalent) --> .qualityai/instructions/
+                                    |
+                                    v
+                             .qualityai/agents/     (orchestrate, decide)
+                                    |
+                                    v
+                             .qualityai/skills/     (methodology)
+                                    |
+                                    v
+                             Quality report (markdown + finding fields)
 ```
 
-## 4. Architectural Principles
-
-### 4.1 Core is CI/CD Agnostic
-
-The core engine is designed to operate independently of any single toolchain. Users should be able to run it locally, from Jenkins, GitHub Actions, GitLab CI, or any custom pipeline.
-
-### 4.2 Integrations are Addons
-
-GitHub Actions, Jira, and other ecosystems are treated as adapters. They call the core engine and normalize output into their native experience.
-
-### 4.3 Requirements are the Source of Truth
-
-The platform validates code against requirements, not just tests. If a requirement is missing, unclear, or not testable, that becomes part of the quality gate feedback.
-
-### 4.4 Quality is Multi-Layered
-
-Quality is not a single metric. It is a combination of:
-
-- requirement alignment
-- code quality
-- security and reliability
-- testing quality
-- architecture consistency
-- AI risk analysis
-- deployment readiness
-
-### 4.5 Specialized Agents with Feedback Loops
-
-A single general-purpose agent is not enough for deep review. Agents are specialized by role and cross-validated by feedback agents to reduce hallucination and false positives.
-
-## 5. Core Repository Structure
-
-The QualityAI platform should be structured with a dedicated root for all AI-related project files. The core is under `.qualityai/`, while GitHub-specific workflow files remain in `.github/` as optional integrations.
+Later addons wrap the same report:
 
 ```text
-project-root/
-├── .qualityai/                              # Core QualityAI configuration and engine
-│   ├── README.md                            # Product overview and entry point
-│   ├── config.yml                          # Core configuration
-│   ├── setup.sh                            # Setup script for repo onboarding
-│   ├── cli.ts                              # CLI entry point
-│   ├── package.json                        # Core runtime dependencies
-│   ├── tsconfig.json                       # TypeScript config (if TypeScript is used)
-│   │
-│   ├── core/                               # Core engine
-│   │   ├── engine.ts                       # Main orchestration engine
-│   │   ├── rules-engine.ts                 # Rule evaluation engine
-│   │   ├── standards-validator.ts          # Standards/rule validation
-│   │   ├── code-analyzer.ts                # Static code analysis logic
-│   │   ├── requirement-mapper.ts           # Maps requirements to checks
-│   │   ├── test-quality-evaluator.ts       # Test quality analysis
-│   │   ├── ai-code-detector.ts             # AI-generation detection logic
-│   │   ├── risk-scoring.ts                 # Risk profile scoring
-│   │   ├── report-generator.ts             # Final markdown/JSON report
-│   │   ├── output-normalizer.ts           # Normalizes output for all integrations
-│   │   ├── decision-engine.ts             # Gate decisions and summary logic
-│   │   └── logger.ts                      # Structured logs
-│   │
-│   ├── agents/                             # Multi-agent quality review design
-│   │   ├── README.md                      # Agent framework and conventions
-│   │   ├── orchestrator/
-│   │   │   ├── quality-orchestrator.agent.md
-│   │   │   ├── quality-orchestrator.feedback.md
-│   │   │   └── orchestrator-config.yml
-│   │   │
-│   │   ├── specialists/
-│   │   │   ├── researcher/
-│   │   │   │   ├── researcher.agent.md
-│   │   │   │   ├── researcher.agent.feedback.md
-│   │   │   │   └── config.yml
-│   │   │   ├── architect/
-│   │   │   │   ├── architect.agent.md
-│   │   │   │   ├── architect.agent.feedback.md
-│   │   │   │   └── config.yml
-│   │   │   ├── tester/
-│   │   │   │   ├── tester.agent.md
-│   │   │   │   ├── tester.agent.feedback.md
-│   │   │   │   └── config.yml
-│   │   │   ├── security-reviewer/
-│   │   │   │   ├── security-reviewer.agent.md
-│   │   │   │   ├── security-reviewer.agent.feedback.md
-│   │   │   │   └── config.yml
-│   │   │   ├── code-reviewer/
-│   │   │   │   ├── code-reviewer.agent.md
-│   │   │   │   ├── code-reviewer.agent.feedback.md
-│   │   │   │   └── config.yml
-│   │   │   ├── ai-detector/
-│   │   │   │   ├── ai-code-detector.agent.md
-│   │   │   │   ├── ai-code-detector.feedback.md
-│   │   │   │   └── config.yml
-│   │   │   └── critic/
-│   │   │       ├── critic.agent.md
-│   │   │       ├── critic.agent.feedback.md
-│   │   │       └── config.yml
-│   │   │
-│   │   ├── gates/
-│   │   │   ├── requirement-gate.agent.md
-│   │   │   ├── design-gate.agent.md
-│   │   │   ├── ai-risk-gate.agent.md
-│   │   │   ├── security-gate.agent.md
-│   │   │   ├── test-quality-gate.agent.md
-│   │   │   └── deployment-readiness-gate.agent.md
-│   │   │
-│   │   ├── orchestration/
-│   │   │   ├── parallel-evaluators.ts
-│   │   │   ├── sequential-gates.ts
-│   │   │   ├── feedback-loop.ts
-│   │   │   ├── consensus-builder.ts
-│   │   │   └── prompt-router.ts
-│   │   │
-│   │   ├── prompts/
-│   │   │   ├── system-prompts/
-│   │   │   │   ├── researcher.md
-│   │   │   │   ├── architect.md
-│   │   │   │   ├── tester.md
-│   │   │   │   ├── security-reviewer.md
-│   │   │   │   ├── ai-detector.md
-│   │   │   │   └── critic.md
-│   │   │   └── feedback-prompts/
-│   │   │       ├── give-constructive-feedback.md
-│   │   │       ├── validate-findings.md
-│   │   │       └── consensus-building.md
-│   │   │
-│   │   └── tools/
-│   │       ├── code-analyzer.ts
-│   │       ├── requirement-parser.ts
-│   │       ├── pattern-matcher.ts
-│   │       ├── test-analyzer.ts
-│   │       └── security-checker.ts
-│   │
-│   ├── rules/                             # Rule library
-│   │   ├── base-rules.yml
-│   │   ├── index.ts
-│   │   ├── by-language/
-│   │   │   ├── typescript.yml
-│   │   │   ├── python.yml
-│   │   │   ├── java.yml
-│   │   │   └── js.yml
-│   │   ├── by-domain/
-│   │   │   ├── payment-systems.yml
-│   │   │   ├── auth-systems.yml
-│   │   │   ├── api-services.yml
-│   │   │   └── data-pipelines.yml
-│   │   └── custom.yml
-│   │
-│   ├── skills/
-│   │   ├── testing-patterns.md
-│   │   ├── security-patterns.md
-│   │   ├── architecture-patterns.md
-│   │   ├── edge-case-detection.md
-│   │   ├── error-handling.md
-│   │   └── quality-standards.md
-│   │
-│   ├── standards/
-│   │   ├── coding-standards.md
-│   │   ├── security-checklist.md
-│   │   ├── performance-expectations.md
-│   │   ├── accessibility-standards.md
-│   │   ├── observability-requirements.md
-│   │   └── review-principles.md
-│   │
-│   ├── templates/
-│   │   ├── pr-report-template.md
-│   │   ├── rule-template.yml
-│   │   └── quality-gate-template.md
-│   │
-│   ├── docs/
-│   │   ├── ARCHITECTURE.md
-│   │   ├── INTEGRATIONS.md
-│   │   ├── RULES-ENGINE.md
-│   │   ├── JIRA-INTEGRATION.md
-│   │   └── EXTENDING-QUALITYAI.md
-│   │
-│   ├── examples/
-│   │   ├── github-actions-example/
-│   │   ├── jenkins-example/
-│   │   ├── local-cli-example/
-│   │   └── jira-integrated-example/
-│   │
-│   └── tests/
-│       ├── unit/
-│       ├── integration/
-│       ├── e2e/
-│       ├── performance/
-│       ├── security/
-│       ├── chaos/
-│       ├── fixtures/
-│       └── utils/
-│
-├── integrations/                            # Optional add-ons
-│   ├── README.md
-│   ├── github-actions/
-│   │   ├── action.yml
-│   │   ├── setup-github.sh
-│   │   └── workflows/
-│   │       └── quality-gate.yml
-│   │
-│   ├── jira/
-│   │   ├── jira-config.yml
-│   │   ├── jira-sync.ts
-│   │   ├── requirements-mapper.ts
-│   │   └── setup-jira.sh
-│   │
-│   ├── jenkins/
-│   │   ├── Jenkinsfile-template
-│   │   ├── setup-jenkins.sh
-│   │   └── pipeline-config.groovy
-│   │
-│   ├── gitlab-ci/
-│   │   ├── .gitlab-ci.yml-template
-│   │   └── setup-gitlab.sh
-│   │
-│   ├── gatling/
-│   │   ├── performance-rules.yml
-│   │   ├── gatling-config.scala
-│   │   └── setup-gatling.sh
-│   │
-│   ├── slack/
-│   │   ├── slack-reporter.ts
-│   │   └── setup-slack.sh
-│   │
-│   └── circleci/
-│       ├── config.yml-template
-│       └── setup-circleci.sh
-│
-├── .github/                                # GitHub-native files only
-│   └── workflows/
-│       └── quality-gate.yml               # Example GitHub workflow using the core engine
-│
-├── docs/
-│   ├── INTRODUCTION.md
-│   ├── GETTING-STARTED.md
-│   ├── CONTRIBUTING.md
-│   └── ROADMAP.md
-│
-├── examples/
-│   ├── github-pr-example/
-│   ├── jenkins-pipeline-example/
-│   ├── local-cli-example/
-│   └── jira-connected-example/
-│
-├── tests/
-│   ├── unit/
-│   ├── integration/
-│   ├── e2e/
-│   ├── performance/
-│   ├── security/
-│   ├── chaos/
-│   └── README.md
-│
+GitHub Action / Jira adapter / GCO exporter  -->  same finding schema
+```
+
+## 4. Architectural principles
+
+### 4.1 Pack is CI-agnostic
+
+v1 runs locally in any repo whose agent can read `.qualityai/`. No GitHub Action is required.
+
+### 4.2 Integrations are addons
+
+GitHub, Jira, GCO, Jenkins, GitLab, Slack call or display pack output. They do not embed checklists.
+
+### 4.3 Requirements are the source of truth
+
+Missing, vague, or untested intent is a gate finding. Jira is one future source, not the v1 dependency.
+
+### 4.4 Quality is multi-layered
+
+Requirement alignment, architecture, AI-assisted scrutiny, tests, security, code quality, performance, deployment readiness.
+
+### 4.5 Specialized agents with feedback
+
+Specialists analyze; feedback counterparts challenge; orchestrator and critic consolidate.
+
+## 5. v1 repository structure (this project and consumer repos)
+
+Canonical layout for the pack (what v1 implements and what hosts vendor):
+
+```text
+.qualityai/
 ├── README.md
-├── PROJECT-REQUIREMENTS.md
-├── ARCHITECTURE.md
-├── LICENSE
-└── .gitignore
+├── instructions/
+│   ├── CONSUME.md                 # tool-agnostic contract + Cursor AGENTS.md example
+│   ├── REVIEW-FLOW.md             # parallel specialists then sequential gates
+│   ├── FINDING-SCHEMA.md          # evidence / severity / confidence contract
+│   └── operating-principles.md    # pointer to DESIGN-PRINCIPLES.md
+│
+├── templates/
+│   └── PLAYBOOK-TEMPLATE.md       # shared structure for every skill playbook
+│
+├── agents/
+│   ├── qa.orchestrator.agent.md
+│   ├── qa.orchestrator.agent.feedback.md
+│   ├── qa.researcher.agent.md
+│   ├── qa.researcher.agent.feedback.md
+│   ├── qa.architect.agent.md
+│   ├── qa.architect.agent.feedback.md
+│   ├── qa.tester.agent.md
+│   ├── qa.tester.agent.feedback.md
+│   ├── qa.security-reviewer.agent.md
+│   ├── qa.security-reviewer.agent.feedback.md
+│   ├── qa.code-reviewer.agent.md
+│   ├── qa.code-reviewer.agent.feedback.md
+│   ├── qa.ai-detector.agent.md
+│   ├── qa.ai-detector.agent.feedback.md
+│   ├── qa.critic.agent.md
+│   ├── qa.critic.agent.feedback.md
+│   └── gates/
+│       ├── requirement-gate.md
+│       ├── design-gate.md
+│       ├── ai-risk-gate.md
+│       ├── test-quality-gate.md
+│       ├── security-gate.md
+│       ├── pr-review-gate.md
+│       └── deployment-readiness-gate.md
+│
+└── skills/
+    ├── requirement-alignment/
+    ├── architecture-patterns/
+    ├── ai-code-detection/
+    ├── testing-patterns/
+    ├── security-patterns/
+    ├── code-quality/
+    └── performance-validation/
 ```
 
-## 6. Core Components
+Each skill directory follows [SKILLS-FRAMEWORK.md](SKILLS-FRAMEWORK.md): `SKILL.md`, `playbook/`, `coverage/`, `examples/`, `references/`. Optional `tooling/` is not required for v1.
 
-### 6.1 Requirements Layer
+This QualityAI repo currently holds product docs at the root. The `.qualityai/` tree is the v1 implementation target.
 
-This layer captures and normalizes requirement data from tools like Jira.
+### 5.1 Explicitly not v1
 
-Responsibilities:
-- read issue metadata and acceptance criteria
-- map dependencies and constraints to quality rules
-- trace PRs to the requirement they are meant to satisfy
-- highlight drift between requirement intent and implementation
+Do not treat these as required to consume the pack:
 
-### 6.2 Rules Engine
+- `cli.ts`, `config.yml` rules engine, language YAML packs
+- `.github/workflows`, Jira sync, GCO exporters
+- `integrations/` adapters
 
-The rules engine defines quality expectations using reusable rule packs and custom overrides.
+Those belong in a future `addons/` (or similar) tree.
 
-Responsibilities:
-- parse requirement-derived rules
-- load project or org-specific standards
-- evaluate code quality against standards
-- classify rules as warning, fail, or blocking
+## 6. Core components (v1)
 
-### 6.3 Code Analysis Layer
+### 6.1 Instructions
 
-This layer inspects the code and project metadata to identify likely issues.
+Teach the host agent how to load the pack, which specialists to run, how gates sequence, and how to emit findings.
 
-Responsibilities:
-- detect missing validations and error handling
-- inspect anti-patterns and architecture drift
-- find weak or brittle tests
-- identify likely AI-generated code patterns
+### 6.2 Agents
 
-### 6.4 Multi-Agent Orchestration Layer
+Orchestrator routes. Specialists each own one concern and **only** invoke their skills. Feedback agents validate evidence and confidence. Critic looks for conflicts and missed risk.
 
-This is the review intelligence layer. It orchestrates specialist agents and feedback agents to produce a deeper, more balanced review than a single LLM or static rule engine.
+### 6.3 Skills
 
-Responsibilities:
-- route work to specialists
-- run specific tasks in parallel when independent
-- apply sequential gate reasoning after exploratory analysis
-- reconcile findings and identify the largest risks
-- ensure review output is balanced, justified, and explained
+Folder-per-skill methodology. Canonical IDs (stable):
 
-### 6.5 Reporting Layer
+| ID | Used by |
+|---|---|
+| `requirement-alignment` | `qa.researcher`, requirement gate |
+| `architecture-patterns` | `qa.architect`, design gate |
+| `ai-code-detection` | `qa.ai-detector`, AI-risk gate |
+| `testing-patterns` | `qa.tester`, test-quality gate |
+| `security-patterns` | `qa.security-reviewer`, security gate |
+| `code-quality` | `qa.code-reviewer` |
+| `performance-validation` | `qa.architect` / `qa.tester` as relevant, deployment gate |
 
-This layer converts raw analysis into a summary that can be consumed by humans and automation.
+### 6.4 Report
 
-Responsibilities:
-- produce a markdown summary for PR comments
-- produce structured JSON for API/CI integrations
-- emit risk score, gate status, and required next action
-- maintain consistent output across integrations
+Markdown summary plus structured finding fields (see §10). Addons later convert this to PR comments, Jira notes, or GCO events.
 
-## 7. Multi-Agent Review Model
+## 7. Multi-agent review model
 
-QualityAI is built around a specialist review model with feedback validation.
+Unchanged in spirit: orchestrator + specialists + feedback pairs + sequential gates + critic.
 
-### 7.1 Core Review Pattern
+### 7.1 Roles
 
-The system uses a primary orchestrator and specialist agents for major quality categories:
+- Researcher: requirement alignment and intent
+- Architect: design and architectural consistency
+- Tester: test quality and edge cases
+- Security-reviewer: security and reliability
+- Code-reviewer: maintainability
+- AI-detector: stricter review rubric for likely AI-assisted or high-volume generated change (no vendor fingerprint claims)
+- Critic: conflicts, blind spots, business risk
+- Orchestrator: routing, merge, final recommendation
 
-- Researcher: requirement alignment and intent validation
-- Architect: design patterns and architectural consistency
-- Tester: test quality and edge-case coverage
-- Security-reviewer: security and reliability risk
-- Code-reviewer: code quality and maintainability
-- AI-detector: identify AI-generated or AI-assisted code
-- Critic: identify conflicts, blind spots, and business risk
+### 7.2 Feedback pairs
 
-### 7.2 Feedback Pairs
+Primary agent analyzes; `qa.[role].agent.feedback.md` asks whether each finding is justified, evidenced, and correctly severitized.
 
-Each specialist agent is paired with a feedback agent. This is important for quality and reduction of hallucination.
+### 7.3 Sequential gates
 
-Patterns:
-- primary agent performs analysis
-- feedback agent validates the diagnosis
-- orchestrator compares the two outputs
-- final report includes confidence level and rationale
-
-Example:
-
-```text
-researcher.agent.md  -> analyzes requirement drift
-researcher.agent.feedback.md -> validates if requirement findings are justified
-```
-
-This helps the system reduce false positives and encourages deeper reasoning.
-
-### 7.3 Sequential Gates
-
-After agents run in parallel, the system applies policy gates in sequence:
+After parallel specialists:
 
 1. requirement-gate
 2. design-gate
 3. ai-risk-gate
-4. security-gate
-5. test-quality-gate
-6. deployment-readiness-gate
+4. test-quality-gate
+5. security-gate
+6. pr-review-gate
+7. deployment-readiness-gate
 
-This gives the model a review flow similar to a human QA pipeline, while still allowing parallel work between specialist reviews.
+Gates are markdown instructions, not pipeline jobs.
 
-### 7.4 Consensus and Risk Prioritization
-
-The critic agent and orchestrator are responsible for reconciling findings across agents. The final decision should be a risk- and confidence-weighted quality report rather than a simple pass/fail string.
-
-## 8. Quality Gate Execution Flow
+## 8. Quality review flow (v1)
 
 ```text
-PR / Change Request / Issue
+Change + requirement text in the host repo
           |
           v
-+---------------------------+
-| Requirement Intake        |
-| - Jira sync               |
-| - Acceptance criteria    |
-| - Requirement graph       |
-+---------------------------+
+Instructions (CONSUME + REVIEW-FLOW)
           |
           v
-+---------------------------+
-| Specialist Analysis       |
-| - Researcher             |
-| - Architect              |
-| - Tester                |
-| - Security reviewer     |
-| - Code reviewer         |
-| - AI detector           |
-+---------------------------+
+Orchestrator selects specialists
           |
           v
-+---------------------------+
-| Feedback Validation       |
-| - Validate findings       |
-| - Reduce hallucinations   |
-| - Score confidence        |
-+---------------------------+
+Parallel specialist analysis (each -> skills)
           |
           v
-+---------------------------+
-| Sequential Gate Review    |
-| - requirement gate       |
-| - design gate            |
-| - ai-risk gate           |
-| - security gate          |
-| - test-quality gate      |
-| - deployment gate        |
-+---------------------------+
+Feedback validation
           |
           v
-+---------------------------+
-| Output: Quality Report   |
-| - Summary                |
-| - Risk score             |
-| - Required actions       |
-| - Merge recommendation   |
-+---------------------------+
+Sequential gates
+          |
+          v
+Critic + orchestrator consolidated report
+          |
+          v
+Human decides (v1 never merges)
 ```
 
-## 9. Agent Orchestration Model
+Jira sync is not in this flow until the Jira addon exists. Requirement text may be a PR description, ticket paste, or in-repo docs.
 
-### 9.1 Orchestrator Responsibilities
+## 9. Agent responsibilities (summary)
 
-- Parse the task or PR context.
-- Gather requirement metadata and change metadata.
-- Select and invoke relevant agents.
-- Merge findings and confidence scores.
-- Trigger sequential gates after initial analysis.
-- Generate final review recommendations.
+- **Orchestrator:** parse context, invoke agents, merge findings, run gates, write the report.
+- **Specialists:** one concern; delegate to named skills; never inline a second skill’s checklist.
+- **Feedback:** evidence, over-claim, under-claim, missing consideration.
+- **Critic:** cross-agent consistency and residual business risk.
 
-### 9.2 Specialist Agent Responsibilities
+## 10. Finding and report contract
 
-Each specialist agent focuses on one aspect of quality, with narrow responsibilities and clear outputs.
+v1 has no CLI. The contract is the document schema later engines and Actions MUST reuse.
 
-Examples:
-- researcher: requirement alignment and intent compliance
-- architect: architecture drift and design fitness
-- tester: test sufficiency and risk pathways
-- security-reviewer: vulnerability and reliability risk
-- code-reviewer: maintainability and code quality
-- ai-detector: probability of AI-generated changes
-- critic: risk prioritization and missed issues
-
-### 9.3 Feedback Agent Responsibilities
-
-Each specialist has a validation peer that asks:
-- Is the finding justified?
-- Is it evidence-backed?
-- Is it over- or under-claiming risk?
-- Is it missing a critical consideration?
-
-This creates a deliberate feedback loop rather than a blind pass from a single LLM call.
-
-## 10. Core Engine Interfaces
-
-The core engine shall expose a small set of interfaces that can be embedded in any environment.
-
-### 10.1 CLI Interface
-
-```bash
-qualityai analyze \
-  --repo-path . \
-  --config .qualityai/config.yml \
-  --format markdown
-```
-
-### 10.2 API Interface
+Finding:
 
 ```json
 {
-  "repoPath": ".",
-  "changeSet": {
-    "type": "pull_request",
-    "branch": "feature/payment-update",
-    "base": "main"
+  "finding": "Missing input validation on user-supplied data",
+  "evidence": {
+    "file": "src/api/payment.ts",
+    "lines": "45-50",
+    "code_snippet": "const amount = req.body.amount;"
   },
-  "requirements": ["REQ-101", "REQ-102"],
-  "output": "markdown"
+  "severity": "high",
+  "confidence": 0.95,
+  "rationale": "Unvalidated amount on a payment path.",
+  "recommendation": "Validate amount as a positive number before processing.",
+  "skill_applied": "security-patterns#input-validation",
+  "agent": "qa.security-reviewer"
 }
 ```
 
-### 10.3 Output Interface
-
-Core output should be normalized to a common schema:
+Report envelope:
 
 ```json
 {
   "status": "fail",
-  "summary": "High risk: AI-generated code missing security validation.",
+  "summary": "High risk: payment path lacks validation; tests miss failure cases.",
   "riskScore": 82,
   "confidence": 0.91,
   "gates": {
     "requirement": "pass",
-    "design": "fail",
-    "aiRisk": "fail",
+    "design": "warn",
+    "aiRisk": "warn",
     "security": "fail",
-    "testQuality": "warn",
+    "testQuality": "fail",
+    "prReview": "fail",
     "deploymentReadiness": "fail"
   },
-  "findings": [
-    {
-      "category": "security",
-      "severity": "high",
-      "message": "Input validation missing in API boundary."
-    }
-  ],
-  "recommendedActions": [
-    "Add input validation before request processing.",
-    "Require security review before merge."
-  ]
+  "findings": [],
+  "recommendedActions": []
 }
 ```
 
-This normalized output is then converted by each integration into the appropriate format: PR comment, Jenkins status, Slack message, Jira update, and so on.
+`status` and gate values are **recommendations**.
 
-## 11. Optional Addon Architecture
+## 11. Later addon architecture
 
-Addons are deliberately thin and should call the shared core engine. They are meant to adapt the output for different developer ecosystems.
+Addons stay thin.
 
-### 11.1 GitHub Actions Addon
+### 11.1 GitHub workflows / Actions
 
-Responsibilities:
-- trigger workflow on PR or push
-- gather metadata (changed files, commit SHA, PR title, issue references)
-- call the QualityAI CLI
-- post a summary comment to the PR
-- fail the job if blocking checks are not passed
+Trigger on PR, gather diff metadata, run or attach an agent review, post the report, optionally fail the job if the host chooses enforcement.
 
-### 11.2 Jira Addon
+### 11.2 Jira
 
-Responsibilities:
-- sync tickets and acceptance criteria
-- map requirement IDs to quality checks
-- update issue status or add comments when quality gates fail or pass
+Import issues and acceptance criteria into the same `requirement-alignment` skill. Do not invent a second requirements methodology.
 
-### 11.3 Jenkins Addon
+### 11.3 GCO (Google Cloud Monitoring / GCP Console)
 
-Responsibilities:
-- call the same QualityAI CLI in a Jenkins stage
-- render build status based on gate results
-- archive reports for audit purposes
+Not part of v1 runtime. Later addon use cases:
 
-### 11.4 GitLab CI Addon
+1. **SLOs and alerts** — define and operate SLOs/alerts in GCO from quality and reliability signals.
+2. **Performance and load requirements** — use service performance metrics to derive performance and load expectations that skills/gates can check against.
+3. **Test-failure RCA** — correlate metrics with failing tests to support root-cause analysis and reports.
 
-Responsibilities:
-- trigger as a pipeline job
-- parse output and expose status to merge requests
+Optional secondary telemetry (pack version, gate outcomes, finding counts) may share the same pipeline but is not the primary GCO story.
 
-### 11.5 Gatling Addon
+### 11.4 Optional CLI / rules engine
 
-Responsibilities:
-- add performance-check scenarios to quality gate evaluation
-- compare results against thresholds for the repo or service
-- fail quality gate if performance regression is detected
+A future `qualityai analyze` command may emit the same schema. It must load the same skill IDs. It is not the v1 install path.
 
-### 11.6 Slack Addon
+### 11.5 Other CI (Jenkins, GitLab, Slack)
 
-Responsibilities:
-- send summarized outcomes to engineering channels
-- provide risk-level notifications
-- surface drag tasks or manual review requests
+Same adapter pattern as GitHub: call or render the report.
 
-## 12. Integration Principle
-
-The core system should never require GitHub or Jira to function. GitHub Actions, Jira, and Jenkins are adapters that consume the core engine's output, not the source of truth.
-
-This leads to better portability and easier adoption across multiple teams and environments.
-
-## 13. Repository and Project Setup Model
-
-### 13.1 Root Structure for a Consumer Repo
+## 12. Consumer setup (v1)
 
 ```text
 project-root/
-├── .qualityai/                           # Copied from QualityAI core setup
-│   ├── config.yml
-│   ├── rules/
-│   ├── skills/
-│   ├── agents/
-│   ├── setup.sh
-│   └── cli.ts
-│
-├── .github/                              # Optional GitHub integration
-│   └── workflows/
-│       └── quality-gate.yml
-│
+├── .qualityai/          # vendored pack
+├── AGENTS.md            # Cursor example: "Use .qualityai/instructions and agents"
 ├── src/
-├── tests/
-├── docs/
 └── README.md
 ```
-
-### 13.2 Setup Workflow
-
-Users can install QualityAI by copying the `.qualityai/` directory and enabling one or more optional integrations.
 
 Example:
 
 ```bash
-cp -r QualityAI/.qualityai ./project/.qualityai
-cd project
-./.qualityai/setup.sh
+cp -r QualityAI/.qualityai ./my-service/.qualityai
 ```
 
-Then choose integrations:
+Then add a short pointer in the host `AGENTS.md`. GitHub/Jira/GCO setup scripts are phase 2.
 
-```bash
-./.qualityai/integrations/github-actions/setup-github.sh
-./.qualityai/integrations/jira/setup-jira.sh
-./.qualityai/integrations/gatling/setup-gatling.sh
-```
+## 13. Data flow
 
-This makes the project usable not only in GitHub-hosted environments but in any repo or pipeline environment.
+**v1 inputs:** host code/diff, requirement text in-repo or in the prompt, pack files.
 
-## 14. Data Flow Model
+**v1 processing:** specialists → skills → feedback → gates → report.
 
-### 14.1 Inputs
+**v1 outputs:** markdown report for humans and agents.
 
-- repository code and diffs
-- requirement definitions from Jira or issue tracker
-- project configuration and standards
-- quality policies and custom rules
-- CI metadata (PR info, branch, commit SHA)
+**Later inputs/outputs:** Jira issues, PR metadata, GCO metrics, CI status.
 
-### 14.2 Processing
+## 14. Security and safety
 
-- map requirements to quality checks
-- analyze changed code
-- run specialist agents in parallel
-- validate with feedback agents
-- run sequential quality gates
-- compute risk scores and summary report
+- v1 agents analyze and recommend only; they do not modify host code, merge, or deploy.
+- No arbitrary code execution required to use the pack.
+- Do not log secrets. Do not ask users to paste credentials.
+- Findings trace to skill IDs.
 
-### 14.3 Outputs
+## 15. Evolution
 
-- PR comment or review summary
-- merge-blocking or warning status
-- JSON report for other tools
-- audit logs for traceability
-- recommendation for manual review
+| Phase | Ships |
+|---|---|
+| 1 (v1) | `.qualityai/` agents, skills, instructions, schema |
+| 2 | GitHub Actions/workflows, Jira intake, GCO telemetry |
+| 3 | Optional CLI/engine, more CI adapters, org packs |
 
-## 15. Security and Safety Considerations
+## 16. Conclusion
 
-QualityAI is designed to review code without introducing unsafe execution or security risk.
-
-Important design constraints:
-- no arbitrary code execution in the core engine
-- source inspection only unless explicitly required by a user-defined integration
-- all external integrations must be permission-bound
-- secrets must be handled through secure config, not in repo content
-- all findings should be auditable and traceable to rule IDs or agent outputs
-
-## 16. Test Strategy and Quality Validation
-
-The project should include a strong multi-layered test strategy to validate the platform itself.
-
-The test structure is:
-
-```text
-tests/
-├── unit/
-├── integration/
-├── e2e/
-├── performance/
-├── security/
-├── chaos/
-├── fixtures/
-├── utils/
-└── README.md
-```
-
-This ensures that QualityAI itself is not a fragile system. The platform must validate its own logic, including:
-- rule engine correctness
-- gate logic correctness
-- feedback loop reliability
-- security of agent and integration execution
-- performance under large repos and high concurrency
-- resilience to API failures and degraded environments
-
-## 17. Evolution Strategy
-
-### Phase 1: Core Engine
-
-- Rule engine
-- requirement mapper
-- basic PR review summaries
-- simple AI detection heuristics
-- basic multi-agent orchestration skeleton
-
-### Phase 2: Standards and Gates
-
-- domain-specific rule packs
-- stronger testing quality checks
-- requirement-to-code traceability
-- gate-based review flow
-
-### Phase 3: Integrations
-
-- GitHub Actions
-- Jira
-- Jenkins
-- GitLab
-- Slack
-- Gatling
-
-### Phase 4: Enterprise Scale
-
-- dashboards
-- policy approvals and audit trails
-- team-specific rule sets
-- advanced orchestration and consensus logic
-
-## 18. Expected Benefits
-
-- deeper and more standardized code review
-- reduced risk from AI-generated code
-- better coverage of requirement drift and edge-case gaps
-- accelerated adoption across organizations with different CI/CD tools
-- easier transfer of QA tribal knowledge into reusable policies
-- improved quality across the full delivery lifecycle
-
-## 19. Conclusion
-
-QualityAI is designed as a portable and extensible quality intelligence platform. Its foundation is a requirement-driven, multi-agent review system that enforces standards across the full software lifecycle while remaining independent from any specific delivery tool.
-
-By keeping the core engine portable and the integrations optional, the system becomes adaptable to GitHub, Jenkins, GitLab, GitHub Enterprise, self-hosted pipelines, and other enterprise environments without sacrificing quality or consistency.
-
-This architecture balances automation, governance, and human review in a way that is practical for modern AI-assisted development.
+v1 architecture is a drop-in quality brain. Keep the engine and adapters off the critical path until the pack is complete and stable. Addons must remain consumers of skills and of the finding schema, never a second source of QA truth.

@@ -1,0 +1,4 @@
+# Common Bottlenecks
+
+Common smells
+
