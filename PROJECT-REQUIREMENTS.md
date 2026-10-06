@@ -212,6 +212,28 @@ Requirements:
 - Include risk explanations and improvement suggestions.
 - Provide links from PR/pipeline context to relevant standards or rule definitions.
 
+### 8.9 Multi-Agent Review Workflow
+
+QualityAI shall support a structured multi-agent review model inspired by specialist and peer-feedback patterns.
+
+Requirements:
+- Maintain a primary orchestrator to manage review flow.
+- Support specialist agents for research, architecture, testing, security, and code review.
+- Support paired feedback agents that validate and critique the primary agent output.
+- Run independent review tasks in parallel where possible.
+- Run sequential quality gates after specialist analysis.
+- Produce one consolidated quality recommendation with rationale and confidence scores.
+
+### 8.10 Platform-Agnostic Core with Optional Integrations
+
+QualityAI shall be designed as a core platform that is not tied to GitHub or any single CI/CD tool.
+
+Requirements:
+- Core engine and rules should operate independently of GitHub Actions, Jenkins, or Jira.
+- Optional integrations shall be layered on top of the core engine.
+- The core engine must expose a CLI or API that can integrate with multiple pipelines and tooling environments.
+- GitHub Actions and other workflow integrations should be treated as adapters, not as the core product.
+
 ## 9. Non-Functional Requirements
 
 ### 9.1 Reliability
@@ -270,6 +292,11 @@ Requirements:
 - As a platform owner, I want org-wide rules to be codified, so that quality standards are enforced consistently.
 - As a compliance stakeholder, I want rule evidence and traceability, so that auditability is easier.
 
+### 10.6 Agentic Review Workflow
+
+- As a reviewer, I want multiple specialized agents to assess different concerns, so that the final review is deeper and more balanced.
+- As a team lead, I want the system to cross-check agent findings via feedback loops, so that false positives and hallucinations are reduced.
+
 ## 11. Quality Gates
 
 QualityAI will operate as a set of quality gates across the lifecycle.
@@ -311,6 +338,7 @@ Provide final go/no-go guidance based on cumulative quality state.
 - GitHub PR quality summary
 - Basic AI-generated code detection heuristic
 - Initial risk-based review comments
+- Basic multi-agent orchestration skeleton for specialist reviews
 
 ### Phase 2: Standards and Test Quality
 
@@ -318,6 +346,7 @@ Provide final go/no-go guidance based on cumulative quality state.
 - Test quality analysis
 - Requirement-to-change traceability
 - Improved AI review rubric
+- Feedback loops between primary and validating agents
 
 ### Phase 3: Lifecycle Governance
 
@@ -325,6 +354,7 @@ Provide final go/no-go guidance based on cumulative quality state.
 - Epic and requirement traceability dashboards
 - Deployment readiness gate
 - Organizational rule sets and audit trail
+- Plugin architecture for GitHub Actions, Jenkins, GitLab, and other tooling
 
 ## 13. Success Metrics
 
@@ -336,6 +366,7 @@ The platform will be considered successful when:
 - Requirement-to-code traceability improves.
 - Test quality is measured beyond coverage percentages.
 - Enforcement of standards becomes less dependent on individual reviewer memory.
+- Multi-agent review output improves precision while maintaining explainability.
 
 ## 14. Risks and Constraints
 
@@ -345,12 +376,14 @@ The platform will be considered successful when:
 - AI-generated code detection may produce false positives.
 - Teams may have inconsistent standards across repositories.
 - Generic quality rules may not fit all domain-specific contexts.
+- Agent-based review may become noisy without feedback validation and gating.
 
 ### 14.2 Constraints
 
 - The platform must be practical and developer-friendly.
 - It should augment, not replace, human judgment.
 - Quality checks must remain explainable and actionable.
+- The core engine should remain portable and optional-integration oriented.
 
 ## 15. Future Considerations
 
@@ -359,6 +392,8 @@ The platform will be considered successful when:
 - Integration with broader CI/CD and deployment workflows
 - Domain-specific rule packs for fintech, healthcare, SaaS, and other regulated ecosystems
 - Review analytics and quality trends over time
+- Expanded agent library for planning, critic, executor, security, and implementation roles
+- More advanced feedback and consensus mechanisms across agent types
 
 ## 16. Conclusion
 
