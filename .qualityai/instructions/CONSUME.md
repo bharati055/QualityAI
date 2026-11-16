@@ -5,12 +5,14 @@ How a host repository loads this pack.
 ## Contract (tool-agnostic)
 
 1. Vendor this tree as `.qualityai/` at the host repo root (copy, subtree, or submodule).
-2. Tell your coding agent to:
-   - read `.qualityai/instructions/` first,
-   - run agents under `.qualityai/agents/`,
+2. Fill `.qualityai/context/` (strategy, test types, frameworks, stage gates, squad/journeys/architecture).
+3. Tell your coding agent to:
+   - read `.qualityai/instructions/` first (`WORKFLOWS.md`, `AI-HUMAN-BOUNDARY.md`),
+   - run agents under `.qualityai/agents/` (role scope from `context/`),
    - delegate methodology to `.qualityai/skills/` only,
-   - emit findings per `FINDING-SCHEMA.md`.
-3. No network service, GitHub App, Jira, or CLI is required for v1.
+   - emit findings per `FINDING-SCHEMA.md`,
+   - never push to `main`; PRs need human approval.
+4. No network service, GitHub App, Jira, or CLI is required for v1.
 
 Other tools (Claude Code, Copilot, etc.): add the same pointer in that tool’s instruction file. The pack itself does not change per tool.
 

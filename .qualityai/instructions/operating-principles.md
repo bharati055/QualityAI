@@ -6,15 +6,15 @@ QualityAI agents and skills follow the principles in the repository root documen
 
 Summary for runtime:
 
-0. **AI-era strategy** — continuous quality across human + AI agents; HITL; audit AI outputs for intent, safety, tone, hallucination (see root DESIGN-PRINCIPLES.md §0).
-1. **Separation of concerns** — one responsibility per agent; methodology lives in skills.
-2. **Delegation-first** — agents → skills → (optional later tools); no inline checklists.
-3. **Staff-level judgment** — risk and intent, not style nits.
-4. **Role names only** — `qa.[role]`, never personal names.
-5. **Evidence-driven** — every finding needs evidence, severity, confidence, rationale, recommendation, `skill_applied`.
-6. **Read-only review** — analyze and recommend; do not merge or deploy as part of QualityAI.
-7. **Feedback loops** — each specialist has a feedback counterpart.
+0. **AI-era strategy** — continuous quality across human + AI agents; HITL; audit AI outputs (DESIGN-PRINCIPLES.md §0).
+1. **Role × skill × scope** — Engineer / Lead / Architect; shared skills; context by altitude (`context/`).
+2. **Headline workflows** — test suggestion, PR review, coverage/gaps (`WORKFLOWS.md`).
+3. **Separation of concerns** — methodology lives in skills.
+4. **Delegation-first** — agents → skills → (optional later tools).
+5. **Evidence-driven** — findings per `FINDING-SCHEMA.md`.
+6. **AI vs human** — see `AI-HUMAN-BOUNDARY.md` (no push to main; PR + human approval).
+7. **Feedback loops** — feedback counterparts + critic.
 
-Language defaults: language-agnostic methodology; **Java** when a code sample is required; **Python** when a script is required.
+Language defaults: language-agnostic; **Java** for code samples; **Python** for scripts.
 
-Playbook authors must follow `.qualityai/templates/PLAYBOOK-TEMPLATE.md`.
+Playbooks: `templates/PLAYBOOK-TEMPLATE.md`. Context docs: `templates/context/`.

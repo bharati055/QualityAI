@@ -65,6 +65,20 @@ These principles define *why* QualityAI exists in the age of AI-assisted deliver
 - Findings must cite evidence and confidence; unverifiable claims are over-claiming.
 - Continuous audit is the goal; sample-only review of AI chats/recommendations is insufficient as volume grows.
 
+### 0.4 Role × skill × scope (scale without headcount)
+
+**Principle:** Scale QA by mapping AI agents to org roles and sharing skills across them; differentiate by **scope**, not by reinventing craft.
+
+| Role | Scope (from context docs) |
+|---|---|
+| `qa.engineer` | Squad product area + framework details |
+| `qa.lead` | Cross-app features, integrations, external deps, critical journeys |
+| `qa.architect` | SUT architecture, FMEA/failure modes, perf metrics, observability |
+
+Shared skills (API, automation, unit, integration, contract, security, performance, SOAK, etc.) are reusable. Role agents load different context and apply the same skills at different altitude.
+
+**Headline workflows:** (1) suggest tests when feature code is generated, (2) PR review, (3) coverage & gaps. Context docs are templated `.md` (strategy, frameworks, stage gates); humans author; AI updates only via PR.
+
 ---
 
 ## 1. Strict Separation of Concerns (SoC)
@@ -394,31 +408,44 @@ Skill applied: testing-patterns#error-path-coverage
 
 ---
 
-## 6. Read-Only for Security and Ops
+## 6. AI vs Human Authority (HITL)
 
 ### 6.1 Principle
 
-QualityAI agents are analysis and recommendation engines. They must never modify code, merge PRs, or execute deployments. The system is strictly read-only with respect to the codebase and production systems.
+QualityAI scales volume work with AI role-agents. **Humans retain authority** over protected branches, production, and release risk. Analysis and suggestions are the default; mutating the host only happens when a human explicitly asks, and even then changes land through a **PR that a human approves**.
 
-### 6.2 Implementation
+### 6.2 What AI MAY do
 
-**What Agents CAN Do (v1):**
-- Read code, tests, requirements in the host repo
-- Analyze patterns and risks
-- Generate reports and recommendations in chat or files the human requested
+- Read code, tests, requirements, and `.qualityai/context/` docs
+- Suggest tests for a feature (types + cases) using shared skills + role scope
+- Run PR review and emit evidence-backed findings
+- Depict coverage and gaps against AC, journeys, and stage gates
+- Draft test code or context-doc updates **as a branch/PR** when the human asks
+- Open a PR (when the host tool allows)
+- Recommend gate pass / warn / fail
 
-**What Agents CANNOT Do:**
-- Modify host code, merge, or deploy as part of a QualityAI review
-- Delete branches, commits, logs, or audit trails
-- Change permissions
-- Post to GitHub or Jira as a required v1 step (that is a later addon)
+### 6.3 What AI MUST NOT do
+
+- Push directly to `main` or other protected branches
+- Merge its own (or any) PR without human approval
+- Deploy to Prod / PreProd / UAT as an autonomous action
+- Silently edit context strategy/gates without a PR
+- Present a recommendation as if CI already enforced it
 - Claim which AI product authored a diff as a blocking fact
+- Delete branches, force-push, change permissions, or destroy audit trails
 
-### 6.3 Security Constraints
+### 6.4 What humans MUST do
+
+- Approve PRs that change product code, tests, or QualityAI context
+- Own merge-to-main and release decisions
+- Maintain or approve critical context (journeys, FMEA, stage-gate criticality)
+- Override or escalate when confidence is low or risk is high
+
+### 6.5 Security Constraints
 
 **Integrations (later addons, not v1):**
 - GitHub/Jira/Jenkins access is defined by those addons. v1 needs no API tokens.
-- When addons exist, they should be read-only unless the host explicitly enables posting a report.
+- When addons exist, posting comments is optional; merge/deploy remain human or explicit policy.
 
 **Data Access:**
 - Agents can read source code, configs, logs
@@ -588,12 +615,15 @@ All agent outputs must include:
 | **AI-Era Quality Strategy** | End-to-end quality across human + AI agents; continuous management over sample audits | Scales quality with AI-assisted delivery |
 | **AI Quality & Testing Frameworks** | Benchmarks, protocols, and HITL for AI agents/bots/recommenders | Verifies AI systems operate as intended |
 | **Audit AI Outputs** | Continuous check of intent, safety, tone, hallucination | Protects users and trust in AI-generated interactions |
+| **Role × Skill × Scope** | Org roles as agents; shared skills; context by altitude | Scale testing without linear hiring |
 | **Separation of Concern** | One responsibility per component | Maintainability, no duplication, clear ownership |
 | **Delegation-First** | Agents → Skills → Tools | Reusability, scalability, clear hierarchy |
 | **Staff-Level Seniority** | Every agent thinks like a principal engineer | Deep insights, not surface-level checks |
 | **No Real Names** | Roles, not people | Durability, transferability, professionalism |
 | **Evidence-Driven** | Every claim is backed by evidence + confidence | Trust, auditability, fewer false positives |
-| **Read-Only** | No code changes, no deployments | Security, safety, humans remain in control |
+| **AI vs Human Authority** | AI suggests / drafts PRs; humans approve main & prod | Safety, compliance, accountable delivery |
+| **Independent validation** | Tests/challenges from specs & journeys, not only coding-agent output | Avoid “green but wrong” |
+| **Suite trust** | Triage failures; quarantine flakes with owner/end date/ticket | Regressions mean real product risk |
 | **Feedback Loops** | Every agent has a validating peer | Continuous improvement, precision and recall |
 
 ---
@@ -617,8 +647,10 @@ Before deploying a new agent:
 
 ---
 
-## 11. Conclusion
+## 11. Industry alignment (summary)
 
-These principles ensure QualityAI is not just powerful, but also maintainable, trustworthy, and auditable. They reflect 18+ years of QA leadership and modern agentic AI best practices.
+Leading orgs (Google, Anthropic, and agent-governance practice at scale) treat AI-written code as increasing **review/test/integration** load. Common pattern: automate volume, risk-tier HITL, protect tests/gates, require evidence, turn incidents into evals. QualityAI encodes that as role × skill × context × HITL. Full write-up: [PROJECT-REQUIREMENTS.md](PROJECT-REQUIREMENTS.md) §17. Phase 2/3 add risk-tiered autonomy, independent spec-based tests, eval harness, and CI enforcement of stage gates.
 
-By adhering to these principles, QualityAI becomes a system that engineering teams can rely on for deep, consistent, evidence-based quality review—with human judgment always in control.
+## 12. Conclusion
+
+These principles ensure QualityAI is maintainable, trustworthy, and auditable. They reflect deep QA leadership practice and modern agentic AI governance: scale testing with AI roles, keep humans on main/prod, and keep the regression suite trustworthy via triage and quarantine.

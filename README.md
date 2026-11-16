@@ -1,26 +1,28 @@
 # QualityAI
 
-Open-source **QA skills, agents, and instructions** that any repository can vendor and run through an AI coding agent.
+Open-source **AI QA operating model**: role-agents, shared testing skills, and machine-readable context docs any repository can vendor.
 
-v1 is a drop-in markdown pack under `.qualityai/`. It is not a CI product, not a Jira product, and not a rules engine. GitHub Actions, Jira intake, and GCO telemetry are later addons.
+**Headline:** scale testing as product code and features grow—without hiring QA 1:1. Suggest tests when feature code is generated; review when a PR is raised; depict coverage and gaps. GitHub Actions, Jira, and GCO are later addons.
 
 ## What v1 is
 
-- **Skills** — reusable QA methodology (playbooks, coverage/gaps, examples). Skills are the single source of expertise.
-- **Agents** — thin role files that delegate to skills, interpret findings, and recommend go/no-go. They do not re-implement checklists.
-- **Instructions** — how a host repo loads the pack, how review flow runs, and the evidence/output contract.
+- **Role-agents** — QA Engineer (squad), QA Lead, QA Architect (+ orchestrator/critic). Same craft skills; different scope.
+- **Skills** — shared methodology (API, automation, unit, integration, contract, security, performance/SOAK, … as the library evolves).
+- **Context** — templated `.md` (test strategy, frameworks, stage gates PR→Prod, journeys, architecture/FMEA)—AI-readable Confluence-as-code.
+- **Workflows** — feature test suggestion, PR review, coverage & gaps.
+- **HITL** — AI may open a PR; humans approve merge to `main`.
 
-Copy `.qualityai/` into another repo. Point that repo’s agent instructions at it (Cursor: see `AGENTS.md` / `.qualityai/instructions/CONSUME.md`). Run a review. No GitHub, Jira, or CLI required.
+Copy `.qualityai/` into another repo. Point the agent at it (Cursor: `AGENTS.md` / `.qualityai/instructions/CONSUME.md`). Fill `context/`. Run a workflow.
 
-The pack already lives in this repository under [`.qualityai/`](.qualityai/).
+The pack lives under [`.qualityai/`](.qualityai/).
 
 ## What v1 is not
 
-- GitHub workflows or Actions
+- GitHub workflows or Actions (context *documents* stage gates; CI enforcement is later)
 - Jira (or other tracker) integration
-- GCO / observability telemetry
+- Live GCO wiring (docs prepare for it)
 - A local CLI or YAML rules engine
-- Merge-blocking enforcement (gates recommend; humans decide)
+- Autonomous merge/deploy (AI must not push to main)
 
 See [PROJECT-REQUIREMENTS.md](PROJECT-REQUIREMENTS.md) and [ARCHITECTURE.md](ARCHITECTURE.md).
 

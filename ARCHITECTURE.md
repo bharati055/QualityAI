@@ -2,35 +2,42 @@
 
 ## 1. Overview
 
-QualityAI v1 is a **portable markdown pack**: agents, skills, and instructions that a host repository vendors under `.qualityai/`. An AI coding agent in that repo reads the pack and runs a specialist quality review.
+QualityAI v1 is a **portable markdown pack**: role-agents, shared skills, context docs, and instructions that a host repository vendors under `.qualityai/`. An AI coding agent uses it to **scale testing** (suggest tests, show coverage/gaps) and to **review PRs**—without replacing human authority over `main` and production.
 
 The platform split remains:
 
 1. **v1 core pack** — tool-agnostic, copyable, no CI or tracker required.
-2. **Later addons** — GitHub Actions/workflows, Jira intake, GCO telemetry, optional CLI/rules engine. Addons consume the pack’s report contract; they do not own methodology.
+2. **Later addons** — GitHub Actions/workflows (including stage gates), Jira intake, GCO telemetry, optional CLI/rules engine. Addons consume the pack’s report contract; they do not own methodology.
 
 ## 2. Design goals
 
-- Start from requirements (whatever text the host provides), not only from tests.
+- Headline: scale test design and gap visibility as features grow (AI role-agents ≈ QA Engineer / Lead / Architect).
+- Workflows: feature test suggestion, PR review, coverage & gaps.
+- Start from requirements + templated context docs, not only from tests.
+- Shared skills (test types); role agents differ by **scope** loaded from context.
 - Treat likely AI-assisted changes with a stricter **review-depth rubric**, not a fake authorship detector.
-- Keep standards in skills; keep agents thin.
-- Stay independent of GitHub, Jira, and GCO in v1.
-- Preserve a stable layout and IDs so addons can attach later.
+- Explicit AI vs human boundary (PR ok; push to main forbidden).
+- Stay independent of GitHub, Jira, and GCO in v1; preserve stable IDs for addons.
 
 ## 3. High-level architecture (v1)
 
 ```text
 Host repository
-  AGENTS.md (or equivalent) --> .qualityai/instructions/
-                                    |
-                                    v
-                             .qualityai/agents/     (orchestrate, decide)
-                                    |
-                                    v
-                             .qualityai/skills/     (methodology)
-                                    |
-                                    v
-                             Quality report (markdown + finding fields)
+  AGENTS.md --> .qualityai/instructions/  (workflows + AI/human boundary)
+                      |
+        +-------------+-------------+----------------+
+        v             v             v                v
+   role-agents    shared skills   context/        templates/
+   (Engineer/     (API, auto,     (strategy,      (playbook +
+    Lead/          unit, ...)      gates,          context forms)
+    Architect)                     journeys,
+                                   architecture)
+                      |
+                      v
+        Test suggestion | PR review | Coverage-gap report
+                      |
+                      v
+              Human approves PRs / merges to main
 ```
 
 Later addons wrap the same report:
@@ -70,17 +77,33 @@ Canonical layout for the pack (what v1 implements and what hosts vendor):
 ├── README.md
 ├── instructions/
 │   ├── CONSUME.md                 # tool-agnostic contract + Cursor AGENTS.md example
-│   ├── REVIEW-FLOW.md             # parallel specialists then sequential gates
+│   ├── REVIEW-FLOW.md             # PR review flow (specialists + gates)
+│   ├── WORKFLOWS.md               # test suggestion, PR review, coverage/gaps
+│   ├── AI-HUMAN-BOUNDARY.md       # what AI may / must not; what humans must
 │   ├── FINDING-SCHEMA.md          # evidence / severity / confidence contract
 │   └── operating-principles.md    # pointer to DESIGN-PRINCIPLES.md
 │
 ├── templates/
-│   └── PLAYBOOK-TEMPLATE.md       # shared structure for every skill playbook
+│   ├── PLAYBOOK-TEMPLATE.md       # shared structure for every skill playbook
+│   └── context/                   # forms for host knowledge docs
+│
+├── context/                       # host-filled knowledge (templated .md)
+│   ├── test-strategy.md
+│   ├── test-types.md
+│   ├── test-automation-framework.md
+│   ├── performance-testing.md
+│   ├── quality-gates/             # PR, DEV, SIT, UAT, PreProd, Prod
+│   ├── squad/                     # product area + frameworks for qa.engineer
+│   ├── journeys/                  # critical journeys for qa.lead
+│   └── architecture/              # SUT, FMEA, observability for qa.architect
 │
 ├── agents/
+│   ├── qa.engineer.agent.md           # squad role (primary)
+│   ├── qa.lead.agent.md               # cross-app / gates role
+│   ├── qa.architect.agent.md          # FMEA / perf / system role
 │   ├── qa.orchestrator.agent.md
 │   ├── qa.orchestrator.agent.feedback.md
-│   ├── qa.researcher.agent.md
+│   ├── qa.researcher.agent.md         # transitional specialist
 │   ├── qa.researcher.agent.feedback.md
 │   ├── qa.architect.agent.md
 │   ├── qa.architect.agent.feedback.md
