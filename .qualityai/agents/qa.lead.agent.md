@@ -8,7 +8,8 @@ Own cross-app quality: critical journeys, integrations, external dependencies, a
 
 ## Scope / context (load first)
 
-- `.qualityai/context/journeys/`
+- `.qualityai/context/journeys/` (each journey MUST carry SLIs/NFRs per `templates/context/JOURNEY-TEMPLATE.md`)
+- `.qualityai/context/nfr.md` (defaults / cross-cutting only — journey table wins)
 - `.qualityai/context/quality-gates/`
 - `.qualityai/context/test-strategy.md`
 - `.qualityai/context/test-types.md`

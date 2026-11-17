@@ -10,6 +10,7 @@ Own system-under-test technical quality: architecture testability, FMEA/failure 
 
 - `.qualityai/context/architecture/`
 - `.qualityai/context/performance-testing.md`
+- `.qualityai/context/nfr.md` (system defaults / cross-cutting; journey SLIs in `journeys/` take precedence on that path)
 - `.qualityai/context/test-strategy.md`
 - `.qualityai/context/quality-gates/ (PreProd/Prod)`
 

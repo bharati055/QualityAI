@@ -83,6 +83,8 @@ Same contract: point that tool’s instruction file at `.qualityai/`. The pack d
 
 Fill `.qualityai/context/` **before** expecting strong results. Use forms under `templates/context/`.
 
+**Stub rule:** Files marked `> **STUB — implement as needed by this project.**` (and `status: stub`) are **optional placeholders**. Do not treat TODO/empty stub content as product truth. Agents must say **"context missing"** rather than invent facts until the stub is implemented. See `context/README.md` and `templates/context/STUB-BANNER.md`.
+
 ### Priority order (minimum viable → deep)
 
 | Priority | Path | Owner role | Purpose |
@@ -93,9 +95,24 @@ Fill `.qualityai/context/` **before** expecting strong results. Use forms under 
 | P0 | `quality-gates/GitWorkflow_PR.md` | Lead | What must pass at PR |
 | P1 | `quality-gates/GitWorkflow_*.md` | Lead | DEV → Prod matrices |
 | P1 | `squad/*.md` | Engineer | Product area + local rules |
-| P1 | `journeys/*.md` (start with **one** critical journey) | Lead | Cross-app path + deps |
-| P2 | `performance-testing.md` | Architect | Gatling/JMeter, SLIs |
-| P2 | `architecture/*.md` | Architect | SUT, FMEA, observability |
+| P1 | `journeys/*.md` (start with **one** critical journey; use `templates/context/JOURNEY-TEMPLATE.md`) | Lead | Path + deps + **journey SLIs** (latency p95/p99, pass rate, concurrency, availability, data quality/completeness) |
+| P1–P2 | `performance-testing.md` | Architect | Gatling/JMeter, SLIs |
+| P1–P2 | `architecture/*.md` | Architect | SUT, FMEA |
+
+### P2 stubs (implement as needed — not required for day-1 pilot)
+
+| Stub path | Fill when… |
+|---|---|
+| `environments.md` | CI failures are mis-triaged as product bugs |
+| `test-data.md` | Data/PII/fixture issues cause flakes or risk |
+| `security-testing.md` | Security reviews need product trust-boundary facts |
+| `api-and-contracts.md` | API/contract skills lack spec locations |
+| `observability.md` | RCA needs dashboards/metrics (prep for GCO) |
+| `suite-trust.md` | Flaky quarantine policy must be project-specific |
+| `nfr.md` | Need system defaults / cross-cutting NFRs (journey SLIs still go on the journey file) |
+| `glossary.md` | Domain language is ambiguous |
+
+Leaving P2 stubs unfilled is OK. Implement only when a workflow needs them.
 
 ### Migration tip
 
@@ -182,5 +199,9 @@ R = does work, A = accountable approval, C = consulted, I = informed.
 | Misses cross-service risk | Fill `journeys/` + integrations |
 | Ignores your Playwright/Selenium layout | Complete `test-automation-framework.md` paths/tags |
 | Suggests wrong stage checks | Edit `quality-gates/GitWorkflow_*.md` |
-| Flakes quarantine without ticket | Enforce `flaky-quarantine` fields; human adds Jira ID |
+| Mis-labels env failures as product bugs | Implement stub `environments.md` |
+| Flakes / quarantine chaos | Implement stub `suite-trust.md`; enforce quarantine fields |
+| API/contract suggestions miss specs | Implement stub `api-and-contracts.md` |
+| Agents invent domain terms | Implement stub `glossary.md` |
+| Agents treat stub TODOs as facts | Remind: stubs ≠ truth; report context missing |
 | Agents edit `main` directly | Re-assert `AI-HUMAN-BOUNDARY.md` in host `AGENTS.md` |

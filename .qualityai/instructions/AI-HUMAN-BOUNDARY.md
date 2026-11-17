@@ -4,7 +4,7 @@ Hard rules for every QualityAI workflow. See also root [DESIGN-PRINCIPLES.md](..
 
 ## AI MAY
 
-- Read code, tests, requirements, and `.qualityai/context/`
+- Read code, tests, requirements, and `.qualityai/context/` (if a context file is still a **STUB**, treat facts as missing — do not invent from TODO placeholders)
 - Suggest tests for a feature (types + cases) using shared skills + role scope
 - Run PR review and emit evidence-backed findings
 - Depict coverage and gaps (not coverage % alone)
