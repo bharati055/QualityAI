@@ -12,7 +12,7 @@ Open-source **AI QA operating model**: role-agents, shared testing skills, and m
 - **Workflows** — feature test suggestion, PR review, coverage & gaps.
 - **HITL** — AI may open a PR; humans approve merge to `main`.
 
-Copy `.qualityai/` into another repo. Point the agent at it (Cursor: `AGENTS.md` / `.qualityai/instructions/CONSUME.md`). Fill `context/`. Run a workflow.
+Copy `.qualityai/` into another repo. Follow [`.qualityai/instructions/ONBOARDING.md`](.qualityai/instructions/ONBOARDING.md). Point the agent at it (Cursor: `AGENTS.md` / `CONSUME.md`). Fill `context/`. Run a workflow.
 
 The pack lives under [`.qualityai/`](.qualityai/).
 

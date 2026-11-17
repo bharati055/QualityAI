@@ -2,6 +2,8 @@
 
 How a host repository loads this pack.
 
+For a full product-team playbook (vendor → fill context → pilot), see **`ONBOARDING.md`**.
+
 ## Contract (tool-agnostic)
 
 1. Vendor this tree as `.qualityai/` at the host repo root (copy, subtree, or submodule).

@@ -17,6 +17,8 @@ Vendor as `.qualityai/`. Point your coding agent at it. No GitHub/Jira/CLI requi
 
 ## Quick start
 
+Follow **`instructions/ONBOARDING.md`** end-to-end. Short version:
+
 1. Copy this folder to `your-repo/.qualityai/`.
 2. Fill `context/` from templates (strategy, test types, frameworks, stage gates).
 3. Point the agent (Cursor: `instructions/CONSUME.md`).

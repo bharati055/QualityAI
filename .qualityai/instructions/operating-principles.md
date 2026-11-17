@@ -4,6 +4,8 @@ QualityAI agents and skills follow the principles in the repository root documen
 
 **[DESIGN-PRINCIPLES.md](../../DESIGN-PRINCIPLES.md)**
 
+Product teams plugging this into a new repo: start with **[ONBOARDING.md](ONBOARDING.md)**.
+
 Summary for runtime:
 
 0. **AI-era strategy** — continuous quality across human + AI agents; HITL; audit AI outputs (DESIGN-PRINCIPLES.md §0).

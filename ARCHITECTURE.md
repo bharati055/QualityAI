@@ -76,6 +76,7 @@ Canonical layout for the pack (what v1 implements and what hosts vendor):
 .qualityai/
 ├── README.md
 ├── instructions/
+│   ├── ONBOARDING.md              # product-team plug-in playbook (vendor → context → pilot)
 │   ├── CONSUME.md                 # tool-agnostic contract + Cursor AGENTS.md example
 │   ├── REVIEW-FLOW.md             # PR review flow (specialists + gates)
 │   ├── WORKFLOWS.md               # test suggestion, PR review, coverage/gaps

@@ -4,7 +4,7 @@
 
 This repository **is** the QualityAI pack. Headline job: **scale testing** with AI role-agents; PR review is a workflow.
 
-1. Read `.qualityai/instructions/WORKFLOWS.md`, `AI-HUMAN-BOUNDARY.md`, `FINDING-SCHEMA.md`.
+1. For setup in a new host repo, see `.qualityai/instructions/ONBOARDING.md`. Day-to-day: `WORKFLOWS.md`, `AI-HUMAN-BOUNDARY.md`, `FINDING-SCHEMA.md`.
 2. For PR review also follow `REVIEW-FLOW.md`.
 3. Follow `.qualityai/agents/qa.orchestrator.agent.md` unless a single role is requested (`qa.engineer` / `qa.lead` / `qa.architect`).
 4. Load role scope from `.qualityai/context/` (squad / journeys / architecture + strategy & gates).
