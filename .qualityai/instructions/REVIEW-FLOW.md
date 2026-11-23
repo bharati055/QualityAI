@@ -27,6 +27,8 @@ Orchestrator invokes specialists that are relevant to the change. Prefer paralle
 | `qa.code-reviewer` | `code-quality` |
 | `qa.ai-detector` | `ai-code-detection` |
 
+When the change has acceptance criteria, journeys, or FMEA, role-agents also run `WORKFLOWS.md` §5 (`spec-based-testing`) before the test-quality gate. A miss, revert, or false positive found in review can be stored with `WORKFLOWS.md` §6.
+
 Each specialist:
 
 1. Reads its agent file

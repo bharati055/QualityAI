@@ -50,6 +50,7 @@ Minimum to keep:
 - `skills/`
 - `templates/`
 - `context/` (start from the shipped stubs)
+- `evals/` (records and regression cases)
 - `README.md`
 
 ---
@@ -134,12 +135,16 @@ Humans author; AI may **propose** context updates **only via PR** (`AI-HUMAN-BOU
    - Feature **test suggestion** on a real feature (`WORKFLOWS.md` §1)
    - **PR review** on a real PR (`REVIEW-FLOW.md`)
    - **Coverage & gaps** for that journey (`WORKFLOWS.md` §3)
+   - **Spec-based test generation** on that feature (`WORKFLOWS.md` §5)
    - Optional: **failure triage / flaky quarantine** on real CI noise (`WORKFLOWS.md` §4)
+   - When a suggestion was wrong, record one **eval case** (`WORKFLOWS.md` §6)
 3. When suggestions are wrong, **fix context or add an example** — do not fork skills casually.
 
 ### Independence rule
 
-QA role-agents should derive tests from **AC, journeys, and FMEA**, not only from code the coding agent just wrote. That avoids “green but wrong” shared assumptions.
+QA role-agents derive tests from **acceptance criteria, journeys, and FMEA** before they compare those cases to the feature diff. Follow `WORKFLOWS.md` §5 and skill `spec-based-testing`.
+
+Every case names its source (`ac`, `journey`, or `failure_mode`). Cases the code change never mentioned are flagged `unmentioned`. Coding-agent tests are a comparison input, not the spec.
 
 ---
 
@@ -158,10 +163,12 @@ QA role-agents should derive tests from **AC, journeys, and FMEA**, not only fro
 
 Not required for first value:
 
+- Risk-tiered autonomy (low / medium / high HITL)
 - GitHub Actions posting QualityAI reports / enforcing `quality-gates/` matrices
-- Jira AC intake and quarantine ticket automation
+- Jira AC intake and quarantine ticket automation (CI metadata for owner, end date, ticket id)
 - GCO metrics for SLOs, load requirements, failure RCA
-- Risk-tiered autonomy and eval/incident harness
+
+Spec-based test generation and the eval harness are already in the pack (`WORKFLOWS.md` §5 and §6). They are markdown workflows plus a Python checker. They do not run CI and they do not file tickets.
 
 Keep using the same skills and context; addons only adapt delivery.
 

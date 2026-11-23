@@ -649,7 +649,7 @@ Before deploying a new agent:
 
 ## 11. Industry alignment (summary)
 
-Leading orgs (Google, Anthropic, and agent-governance practice at scale) treat AI-written code as increasing **review/test/integration** load. Common pattern: automate volume, risk-tier HITL, protect tests/gates, require evidence, turn incidents into evals. QualityAI encodes that as role × skill × context × HITL. Full write-up: [PROJECT-REQUIREMENTS.md](PROJECT-REQUIREMENTS.md) §17. Phase 2/3 add risk-tiered autonomy, independent spec-based tests, eval harness, and CI enforcement of stage gates.
+Leading orgs (Google, Anthropic, and agent-governance practice at scale) treat AI-written code as increasing **review/test/integration** load. Common pattern: automate volume, risk-tier HITL, protect tests/gates, require evidence, turn incidents into evals. QualityAI encodes that as role × skill × context × HITL. Full write-up: [PROJECT-REQUIREMENTS.md](PROJECT-REQUIREMENTS.md) §17. Spec-based tests and the eval harness are in the pack (`.qualityai/instructions/WORKFLOWS.md`). Risk-tiered autonomy and CI enforcement of stage gates remain Phase 2/3.
 
 ## 12. Conclusion
 

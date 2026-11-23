@@ -200,7 +200,14 @@ Skills are **shared craft** used by multiple role-agents. The system SHALL ship 
 | `flaky-quarantine` | Identify flakes; quarantine with owner, end date, ticket ID |
 | (existing) `security-patterns`, `performance-validation`, `testing-patterns` | Security; load/perf; umbrella patterns still valid |
 
-Each skill SHALL include: `SKILL.md`, phase playbooks, `coverage/COVERAGE.md`, `coverage/GAPS.md`, annotated examples, and references. Executable `tooling/` is optional and not required for v1.
+**Independence and eval skills:**
+
+| Skill ID | Concern |
+|---|---|
+| `spec-based-testing` | Derive tests from AC, journeys, and FMEA before comparing them to the feature diff. Name the source. Flag `unmentioned`. |
+| `eval-harness` | Turn an incident, revert, or false-positive finding into a regression case for the agent or skill that missed it |
+
+Each skill SHALL include: `SKILL.md`, phase playbooks, `coverage/COVERAGE.md`, `coverage/GAPS.md`, annotated examples, and references. Executable `tooling/` is optional and not required for v1. `spec-based-testing` and `eval-harness` ship a standard-library Python checker. It is not a CI runner.
 
 ### 8.3 Role-agent model
 
@@ -208,9 +215,9 @@ Agents map to a scalable QA org. Shared skills + different **scope/context** per
 
 | Role-agent | Scope / knowledge | Typical use of skills |
 |---|---|---|
-| `qa.engineer` (squad) | Product area + framework details from squad context docs | Design/suggest local tests; apply API/unit/automation skills in-area |
-| `qa.lead` (manager) | Cross-app features, integrations, external dependencies, critical user journeys | Journey coverage, cross-system gaps, stage-gate fitness |
-| `qa.architect` | SUT technical architecture, FMEA/failure modes, performance metrics, observability | System risk, perf/SOAK strategy, architectural testability |
+| `qa.engineer` (squad) | Product area + framework details from squad context docs | Design/suggest local tests; apply API/unit/automation skills in-area; spec-based cases from AC |
+| `qa.lead` (manager) | Cross-app features, integrations, external dependencies, critical user journeys | Journey coverage, cross-system gaps, stage-gate fitness; spec-based cases from journeys; eval set |
+| `qa.architect` | SUT technical architecture, FMEA/failure modes, performance metrics, observability | System risk, perf/SOAK strategy, architectural testability; spec-based cases from FMEA |
 | `qa.orchestrator` | Routes workflows; consolidates reports | Invokes role-agents + skills per workflow |
 | `qa.critic` (+ feedback pairs) | Cross-checks | Reduce false positives / blind spots |
 
@@ -225,6 +232,8 @@ The pack SHALL support these entry workflows (orchestrator-routed):
 1. **Feature test suggestion** — When feature code is generated or proposed, recommend required test types and cases from requirements + context (strategy, test_types, frameworks, stage gates), aimed at autonomous-ready delivery.
 2. **PR review** — When a PR is raised, run role-appropriate review (code, tests, security, alignment) and produce a finding report.
 3. **Coverage & gaps** — Depict what is covered vs missing against AC, critical journeys, and stage-gate expectations (not coverage % alone).
+4. **Spec-based test generation** — Derive cases from AC, journeys, and FMEA before comparing them to the feature diff. Name the source. Flag `unmentioned` cases.
+5. **Eval case** — Record an incident, revert, or false positive and store a regression case for the agent or skill that missed it (`.qualityai/evals/`).
 
 ### 8.3b Context knowledge pack
 
@@ -360,9 +369,14 @@ These gates are instruction-level in v1:
 
 ### Phase 2 — autonomy, independence, suite trust, first addons
 
+Shipped in the pack (markdown workflow and a Python checker, not CI):
+
+- **Independent test generation from specs** — `instructions/WORKFLOWS.md` §5 and skill `spec-based-testing`. QA agents derive tests from AC, journeys, and FMEA before they compare that set to the feature diff. Every case names its source (`ac`, `journey`, or `failure_mode`). Cases the change never mentioned are flagged `unmentioned`.
+- **Eval / incident harness** — `.qualityai/evals/` and skill `eval-harness`. An incident, revert, or false-positive finding becomes a regression case: input, bad outcome, expected finding, aimed at the agent or skill that missed it.
+
+Still later (not in this pack):
+
 - **Risk-tiered autonomy** — low/medium/high change tiers map to HITL depth (align with Anthropic-style approval tiers).
-- **Independent test generation from specs** — QA agents derive tests from AC/journeys/FMEA, not only from coding-agent output (avoid shared-assumption green tests).
-- **Eval / incident harness** — turn incidents, reverts, and false positives into regression eval cases for agents/skills.
 - **Flaky quarantine enforcement hooks** — owner, end date, Jira ID required in CI metadata (Jira sync as adapter).
 - GitHub Actions that **comment** QualityAI reports; begin wiring context `quality-gates/` as advisory checks.
 - Jira requirement intake + quarantine ticket linkage.
@@ -444,13 +458,13 @@ Role × skill × context × HITL is therefore a **sound, scalable** response to 
 
 | Risk | Mitigation in QualityAI |
 |---|---|
-| Coding agent and its tests share wrong assumptions (“green but wrong”) | Independent test suggestion from AC/journeys/FMEA (`qa.*` roles + requirement-alignment); Phase 2 independence workflow |
+| Coding agent and its tests share wrong assumptions (“green but wrong”) | `spec-based-testing` (`WORKFLOWS.md` §5): cases from AC/journeys/FMEA before the diff, source named, `unmentioned` flagged. `requirement-alignment` still checks intent vs change |
 | Review fatigue / noise | Severity ordering; role scope; risk tiers (Phase 2) |
 | Flaky suite destroys trust | `failure-triage` + `flaky-quarantine` with owner/end date/ticket |
 | Agents bypass policy | `AI-HUMAN-BOUNDARY.md`; no push to main; context via PR |
-| Non-deterministic markdown agents | Strict playbooks/examples; later eval harness + CI |
+| Non-deterministic markdown agents | Strict playbooks/examples; `eval-harness` stores the miss as a regression case; CI eval gates later |
 | Stage gates only on paper | Context matrices now; CI enforcement in Phase 3 |
 
 ## 18. Conclusion
 
-QualityAI scales QA with AI the way strong orgs always scaled: clear roles, shared craft, written strategy, and stage gates—now as an in-repo pack. Test scaling is the headline; PR review is a workflow; suite trust (triage/quarantine) keeps regressions meaningful; humans keep authority over main and production. Risk-tiered autonomy, independent spec-based tests, eval harnesses, and CI-enforced GitWorkflow matrices are the deliberate Phase 2/3 path.
+QualityAI scales QA with AI the way strong orgs always scaled: clear roles, shared craft, written strategy, and stage gates—now as an in-repo pack. Test scaling is the headline; PR review is a workflow; suite trust (triage/quarantine) keeps regressions meaningful; humans keep authority over main and production. Spec-based tests and the eval harness are in the pack. Risk-tiered autonomy and CI-enforced GitWorkflow matrices remain the rest of the Phase 2/3 path.

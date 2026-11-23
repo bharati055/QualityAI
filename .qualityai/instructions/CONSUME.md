@@ -47,6 +47,7 @@ Minimum:
 - `.qualityai/agents/`
 - `.qualityai/skills/`
 - `.qualityai/templates/` (for authors extending skills)
+- `.qualityai/evals/` (incident, revert, and false-positive cases)
 - `.qualityai/README.md`
 
 Root product docs (`PROJECT-REQUIREMENTS.md`, etc.) are optional for consumers.

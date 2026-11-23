@@ -11,6 +11,7 @@ Vendor as `.qualityai/`. Point your coding agent at it. No GitHub/Jira/CLI requi
 ├── instructions/   # workflows, AI/human boundary, review flow, schema
 ├── templates/      # playbook + context doc forms
 ├── context/        # host knowledge (strategy, gates, squad, journeys, architecture)
+├── evals/          # incident, revert, and false-positive cases
 ├── agents/         # role / specialist agents + gates/
 └── skills/         # shared methodology
 ```
@@ -22,7 +23,7 @@ Follow **`instructions/ONBOARDING.md`** end-to-end. Short version:
 1. Copy this folder to `your-repo/.qualityai/`.
 2. Fill `context/` from templates (strategy, test types, frameworks, stage gates).
 3. Point the agent (Cursor: `instructions/CONSUME.md`).
-4. Ask for: feature test suggestion | PR review | coverage & gaps.
+4. Ask for: feature test suggestion | spec-based tests | PR review | coverage & gaps | an eval case.
 
 ## Rules
 

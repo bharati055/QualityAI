@@ -17,10 +17,14 @@ Assess whether tests meaningfully cover behavior, failure paths, and risk — be
 ## Skills
 
 - `testing-patterns` → `.qualityai/skills/testing-patterns/SKILL.md`
+- `spec-based-testing` → `.qualityai/skills/spec-based-testing/SKILL.md`
+- `eval-harness` → `.qualityai/skills/eval-harness/SKILL.md`
 
 ## Typical playbooks
 
 - skills/testing-patterns/playbook/create|plan|review|refactor|update|failure-analysis
+- WORKFLOWS.md §5 when the change has AC, journeys, or FMEA
+- WORKFLOWS.md §6 when a test-quality finding was a false positive
 
 ## Output
 

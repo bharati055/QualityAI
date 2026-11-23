@@ -6,6 +6,8 @@ Hard rules for every QualityAI workflow. See also root [DESIGN-PRINCIPLES.md](..
 
 - Read code, tests, requirements, and `.qualityai/context/` (if a context file is still a **STUB**, treat facts as missing — do not invent from TODO placeholders)
 - Suggest tests for a feature (types + cases) using shared skills + role scope
+- Derive spec-based tests from acceptance criteria, journeys, and FMEA, then compare that set to the feature diff
+- Record an incident, revert, or false-positive finding as an eval case under `.qualityai/evals/` (via PR)
 - Run PR review and emit evidence-backed findings
 - Depict coverage and gaps (not coverage % alone)
 - Draft test code or context updates when asked
@@ -38,3 +40,5 @@ Hard rules for every QualityAI workflow. See also root [DESIGN-PRINCIPLES.md](..
 | Context doc outdated | AI opens PR to update template-filled `.md`; human approves |
 | Stage gate fail recommendation | Human decides ship / fix / waive |
 | Secrets in diff | Report finding; never ask user to paste secrets into chat |
+| Spec-based tests | Derive from AC, journeys, and FMEA first; compare to the diff second; flag cases the change never mentioned |
+| Eval case | PR under `.qualityai/evals/`; paste a ticket id as text if one already exists |
