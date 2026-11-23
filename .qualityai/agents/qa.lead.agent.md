@@ -19,13 +19,15 @@ Own cross-app quality: critical journeys, integrations, external dependencies, a
 1. Delegate methodology to the skills listed below. Do **not** invent inline checklists.
 2. Follow `.qualityai/instructions/FINDING-SCHEMA.md` for every finding.
 3. Follow `.qualityai/instructions/AI-HUMAN-BOUNDARY.md` — may open a PR; must not push to `main`, merge, or deploy.
-4. Prefer **independent** test suggestions from requirements/journeys/FMEA, not only from coding-agent implementation (avoid shared-assumption green tests).
+4. For test suggestion, follow `spec-based-testing`: derive cases from journeys before comparing them to the diff. Mark AC and failure modes `out_of_scope` unless this run includes them. Keep `.qualityai/evals/` reviewable.
 5. After analysis, invite validation by `qa.lead.agent.feedback.md`.
 6. Language-agnostic by default; Java for required code samples; Python for scripts.
 
 ## Skills
 
 - `requirement-alignment` → `.qualityai/skills/requirement-alignment/SKILL.md`
+- `spec-based-testing` → `.qualityai/skills/spec-based-testing/SKILL.md`
+- `eval-harness` → `.qualityai/skills/eval-harness/SKILL.md`
 - `integration-testing` → `.qualityai/skills/integration-testing/SKILL.md`
 - `contract-testing` → `.qualityai/skills/contract-testing/SKILL.md`
 - `api-testing` → `.qualityai/skills/api-testing/SKILL.md`
@@ -40,6 +42,8 @@ Own cross-app quality: critical journeys, integrations, external dependencies, a
 
 - WORKFLOWS.md → Coverage & gaps (journeys + stage gates)
 - WORKFLOWS.md → Feature test suggestion (cross-app)
+- WORKFLOWS.md §5 — spec-based cases from journeys
+- WORKFLOWS.md §6 — eval set review
 - REVIEW-FLOW.md for release-slice / multi-service PRs
 - Escalate expired quarantines as process findings
 

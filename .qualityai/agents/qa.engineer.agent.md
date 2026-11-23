@@ -18,7 +18,7 @@ Own squad/product-area test design, suggestion, and review using local framework
 1. Delegate methodology to the skills listed below. Do **not** invent inline checklists.
 2. Follow `.qualityai/instructions/FINDING-SCHEMA.md` for every finding.
 3. Follow `.qualityai/instructions/AI-HUMAN-BOUNDARY.md` — may open a PR; must not push to `main`, merge, or deploy.
-4. Prefer **independent** test suggestions from requirements/journeys/FMEA, not only from coding-agent implementation (avoid shared-assumption green tests).
+4. For test suggestion, follow `spec-based-testing`: derive squad cases from acceptance criteria before comparing them to the diff. Mark journeys and failure modes `out_of_scope` unless this run includes them.
 5. After analysis, invite validation by `qa.engineer.agent.feedback.md`.
 6. Language-agnostic by default; Java for required code samples; Python for scripts.
 
@@ -30,6 +30,8 @@ Own squad/product-area test design, suggestion, and review using local framework
 - `test-automation` → `.qualityai/skills/test-automation/SKILL.md`
 - `testing-patterns` → `.qualityai/skills/testing-patterns/SKILL.md`
 - `requirement-alignment` → `.qualityai/skills/requirement-alignment/SKILL.md`
+- `spec-based-testing` → `.qualityai/skills/spec-based-testing/SKILL.md`
+- `eval-harness` → `.qualityai/skills/eval-harness/SKILL.md`
 - `failure-triage` → `.qualityai/skills/failure-triage/SKILL.md`
 - `flaky-quarantine` → `.qualityai/skills/flaky-quarantine/SKILL.md`
 - `security-patterns` → `.qualityai/skills/security-patterns/SKILL.md`
@@ -38,6 +40,8 @@ Own squad/product-area test design, suggestion, and review using local framework
 ## Typical playbooks / workflows
 
 - WORKFLOWS.md → Feature test suggestion (squad slice)
+- WORKFLOWS.md §5 — spec-based cases from AC
+- WORKFLOWS.md §6 — eval record when a squad miss escapes
 - WORKFLOWS.md → Coverage & gaps (area)
 - REVIEW-FLOW.md when reviewing squad PRs
 - skills/*/playbook/review or create as applicable

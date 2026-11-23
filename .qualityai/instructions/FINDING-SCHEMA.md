@@ -42,9 +42,11 @@ Every finding and the consolidated report MUST use these fields. Addons (GitHub,
 
 Use canonical IDs only:
 
-`requirement-alignment`, `architecture-patterns`, `ai-code-detection`, `testing-patterns`, `security-patterns`, `code-quality`, `performance-validation`
+`requirement-alignment`, `architecture-patterns`, `ai-code-detection`, `testing-patterns`, `security-patterns`, `code-quality`, `performance-validation`, `spec-based-testing`, `eval-harness`
 
-Example: `testing-patterns#review` or `security-patterns#input-validation`
+Test-type and suite-trust IDs are canonical too (`unit-testing`, `api-testing`, `integration-testing`, `contract-testing`, `test-automation`, `soak-testing`, `failure-triage`, `flaky-quarantine`). See `PROJECT-REQUIREMENTS.md` §8.2 and `.qualityai/skills/README.md`.
+
+Example: `testing-patterns#review`, `spec-based-testing#compare`, or `security-patterns#input-validation`
 
 ## Report envelope
 

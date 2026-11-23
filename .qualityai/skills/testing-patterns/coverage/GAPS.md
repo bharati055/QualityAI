@@ -5,6 +5,7 @@
 - Performance/load testing (performance-validation)
 - Security testing methodology (security-patterns)
 - Choosing a specific framework as dogma
+- Which cases the specs require before the diff is opened (`spec-based-testing`)
 
 ## Future
 

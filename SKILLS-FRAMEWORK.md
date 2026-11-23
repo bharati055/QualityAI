@@ -13,8 +13,12 @@ Use these directory names and IDs everywhere (agents, findings, docs). Do not us
 | `security-patterns` | `.qualityai/skills/security-patterns/` |
 | `code-quality` | `.qualityai/skills/code-quality/` |
 | `performance-validation` | `.qualityai/skills/performance-validation/` |
+| `spec-based-testing` | `.qualityai/skills/spec-based-testing/` |
+| `eval-harness` | `.qualityai/skills/eval-harness/` |
 
-Cite findings as `skill-id#section` (example: `testing-patterns#error-path-coverage`).
+Cite findings as `skill-id#section` (example: `testing-patterns#error-path-coverage` or `spec-based-testing#compare`).
+
+`spec-based-testing` derives cases from acceptance criteria, journeys, and FMEA before comparing them to the feature diff. `eval-harness` stores incidents, reverts, and false positives as regression cases under `.qualityai/evals/`. Each ships a Python checker in `tooling/`. The checkers are not a CI runner.
 
 `ai-code-detection` is a **review-depth rubric** for likely AI-assisted or high-volume generated changes. It does not claim Copilot/Claude/human authorship as fact.
 

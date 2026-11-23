@@ -12,7 +12,7 @@ The platform split remains:
 ## 2. Design goals
 
 - Headline: scale test design and gap visibility as features grow (AI role-agents ≈ QA Engineer / Lead / Architect).
-- Workflows: feature test suggestion, PR review, coverage & gaps.
+- Workflows: feature test suggestion, spec-based tests, PR review, coverage & gaps, eval cases.
 - Start from requirements + templated context docs, not only from tests.
 - Shared skills (test types); role agents differ by **scope** loaded from context.
 - Treat likely AI-assisted changes with a stricter **review-depth rubric**, not a fake authorship detector.
@@ -34,7 +34,7 @@ Host repository
                                    architecture)
                       |
                       v
-        Test suggestion | PR review | Coverage-gap report
+        Test suggestion | Spec-based tests | PR review | Coverage gaps | Eval cases
                       |
                       v
               Human approves PRs / merges to main
@@ -79,7 +79,7 @@ Canonical layout for the pack (what v1 implements and what hosts vendor):
 │   ├── ONBOARDING.md              # product-team plug-in playbook (vendor → context → pilot)
 │   ├── CONSUME.md                 # tool-agnostic contract + Cursor AGENTS.md example
 │   ├── REVIEW-FLOW.md             # PR review flow (specialists + gates)
-│   ├── WORKFLOWS.md               # test suggestion, PR review, coverage/gaps
+│   ├── WORKFLOWS.md               # test suggestion, spec-based tests, PR review, coverage/gaps, eval cases
 │   ├── AI-HUMAN-BOUNDARY.md       # what AI may / must not; what humans must
 │   ├── FINDING-SCHEMA.md          # evidence / severity / confidence contract
 │   └── operating-principles.md    # pointer to DESIGN-PRINCIPLES.md
@@ -87,6 +87,10 @@ Canonical layout for the pack (what v1 implements and what hosts vendor):
 ├── templates/
 │   ├── PLAYBOOK-TEMPLATE.md       # shared structure for every skill playbook
 │   └── context/                   # forms for host knowledge docs
+│
+├── evals/                         # incident / revert / false-positive records and cases
+│   ├── records/
+│   └── cases/
 │
 ├── context/                       # host-filled knowledge (templated .md)
 │   ├── test-strategy.md
@@ -134,10 +138,12 @@ Canonical layout for the pack (what v1 implements and what hosts vendor):
     ├── testing-patterns/
     ├── security-patterns/
     ├── code-quality/
-    └── performance-validation/
+    ├── performance-validation/
+    ├── spec-based-testing/        # AC / journey / FMEA cases, then the diff
+    └── eval-harness/              # incident, revert, false-positive cases
 ```
 
-Each skill directory follows [SKILLS-FRAMEWORK.md](SKILLS-FRAMEWORK.md): `SKILL.md`, `playbook/`, `coverage/`, `examples/`, `references/`. Optional `tooling/` is not required for v1.
+Each skill directory follows [SKILLS-FRAMEWORK.md](SKILLS-FRAMEWORK.md): `SKILL.md`, `playbook/`, `coverage/`, `examples/`, `references/`. Optional `tooling/` is not required for v1. `spec-based-testing` and `eval-harness` ship a standard-library Python checker under `tooling/`. `.qualityai/evals/` holds the eval records and regression cases.
 
 This QualityAI repo currently holds product docs at the root. The `.qualityai/` tree is the v1 implementation target.
 
@@ -174,6 +180,8 @@ Folder-per-skill methodology. Canonical IDs (stable):
 | `security-patterns` | `qa.security-reviewer`, security gate |
 | `code-quality` | `qa.code-reviewer` |
 | `performance-validation` | `qa.architect` / `qa.tester` as relevant, deployment gate |
+| `spec-based-testing` | `qa.engineer`, `qa.lead`, `qa.architect`, `qa.tester` |
+| `eval-harness` | role that missed; `qa.lead` keeps the set; orchestrator routes |
 
 ### 6.4 Report
 
@@ -367,6 +375,8 @@ Then add a short pointer in the host `AGENTS.md`. GitHub/Jira/GCO setup scripts 
 | 1 (v1) | `.qualityai/` agents, skills, instructions, schema |
 | 2 | GitHub Actions/workflows, Jira intake, GCO telemetry |
 | 3 | Optional CLI/engine, more CI adapters, org packs |
+
+Spec-based test generation and the eval harness ship in the pack (workflow, skills, `.qualityai/evals/`). They are not GitHub Actions, Jira, or CI enforcement. Risk-tiered autonomy stays later.
 
 ## 16. Conclusion
 

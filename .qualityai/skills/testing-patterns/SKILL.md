@@ -25,6 +25,7 @@ Use this skill when the review concern matches: **Design and review tests for me
 - Performance/load testing (performance-validation)
 - Security testing methodology (security-patterns)
 - Choosing a specific framework as dogma
+- Which cases the specs require before the diff is opened (`spec-based-testing`)
 
 See `coverage/GAPS.md`.
 

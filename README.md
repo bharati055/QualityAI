@@ -26,6 +26,13 @@ The pack lives under [`.qualityai/`](.qualityai/).
 
 See [PROJECT-REQUIREMENTS.md](PROJECT-REQUIREMENTS.md) and [ARCHITECTURE.md](ARCHITECTURE.md).
 
+## Spec-based tests and the eval harness
+
+- **Spec-based tests** — [`.qualityai/instructions/WORKFLOWS.md`](.qualityai/instructions/WORKFLOWS.md) §5 and skill `spec-based-testing`. Cases come from acceptance criteria, journeys, and FMEA first. The feature diff is compared after that. Every case names its source (`ac`, `journey`, or `failure_mode`). Cases the change never mentioned are flagged `unmentioned`.
+- **Eval harness** — [`.qualityai/evals/`](.qualityai/evals/) and skill `eval-harness`. An incident, a revert, or a false-positive finding becomes a regression case (input, bad outcome, expected finding) for the agent or skill that missed it.
+
+Risk-tiered autonomy, quarantine rules in CI, and GitHub/Jira adapters stay later addons.
+
 ## Consume in any repo
 
 The pack is **tool-agnostic**. Any markdown-capable coding agent can read `.qualityai/`.

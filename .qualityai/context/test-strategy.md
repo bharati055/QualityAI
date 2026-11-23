@@ -42,7 +42,7 @@ Overall QA approach for this product/repo. Role-agents use this when suggesting 
 ## Links
 
 - `test-types.md`, `quality-gates/`, `journeys/`, `architecture/`
-- Skills: `testing-patterns`, `performance-validation`, `requirement-alignment`
+- Skills: `testing-patterns`, `performance-validation`, `requirement-alignment`, `spec-based-testing`, `eval-harness`
 
 ## Change control
 

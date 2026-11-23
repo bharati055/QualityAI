@@ -1,0 +1,72 @@
+{
+  "specs_read_before_diff": true,
+  "compared_to_diff": true,
+  "sources_consulted": {
+    "ac": "present",
+    "journey": "present",
+    "failure_mode": "present"
+  },
+  "source_gaps": [],
+  "skipped": [],
+  "cases": [
+    {
+      "id": "ac-full-refund",
+      "source": "ac",
+      "source_ref": "AC-1",
+      "title": "Full refund of a captured payment restores the pre-capture balance",
+      "expected": "The gateway records one full refund and the customer balance equals the pre-capture balance",
+      "mentioned_in_diff": true,
+      "diff_evidence": "RefundServiceTest#refundsFullAmount",
+      "flags": [],
+      "also_from": [],
+      "suggested_test_type": "unit-testing"
+    },
+    {
+      "id": "ac-partial-refund",
+      "source": "ac",
+      "source_ref": "AC-2",
+      "title": "Partial refund leaves the remainder captured",
+      "expected": "Captured balance equals the original capture minus the refunded sum",
+      "mentioned_in_diff": false,
+      "diff_evidence": "",
+      "flags": ["unmentioned"],
+      "also_from": [],
+      "suggested_test_type": "unit-testing"
+    },
+    {
+      "id": "journey-refund-confirm",
+      "source": "journey",
+      "source_ref": "journey-checkout#step-4",
+      "title": "Confirmation shows Refunded only after the gateway accepts",
+      "expected": "The confirmation status is Refunded when the gateway result is accepted, and unchanged while the result is pending",
+      "mentioned_in_diff": true,
+      "diff_evidence": "CheckoutRefundIT#confirmShowsRefundedAfterGatewayAccepts",
+      "flags": [],
+      "also_from": [
+        {
+          "source": "ac",
+          "source_ref": "AC-1"
+        }
+      ],
+      "suggested_test_type": "integration-testing"
+    },
+    {
+      "id": "fm-refund-retry",
+      "source": "failure_mode",
+      "source_ref": "FM-14",
+      "title": "Retry after an accepted refund times out does not submit a second refund",
+      "expected": "The gateway receives one refund call and the caller observes REFUNDED",
+      "mentioned_in_diff": false,
+      "diff_evidence": "",
+      "flags": ["unmentioned"],
+      "also_from": [],
+      "suggested_test_type": "unit-testing"
+    }
+  ],
+  "diff_only": [
+    {
+      "evidence": "RefundServiceTest#rejectsNonPositiveAmount",
+      "note": "The diff tests a non-positive amount branch. No AC, journey step, or failure mode states that case."
+    }
+  ]
+}
