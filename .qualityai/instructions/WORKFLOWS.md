@@ -66,9 +66,9 @@ When the change has acceptance criteria, journeys, or FMEA, include §5 so the t
 
 1. `spec-based-testing` / `derive` — build the case set with the feature diff closed. Sources are `ac` (engineer), `journey` (lead), and `failure_mode` (architect). If a source is missing, say **context missing**. Do not invent AC, journeys, or failure modes.
 2. `spec-based-testing` / `compare` — open the feature diff. Mark each case `mentioned_in_diff`. Add flag `unmentioned` when the diff never mentions the case. List diff tests that match no spec case as `diff_only`.
-3. `spec-based-testing` / `report` — emit the case table, findings, and the JSON case set. Check it with `skills/spec-based-testing/tooling/validate_spec_cases.py`.
+3. `spec-based-testing` / `report` — emit the case table, findings, and the JSON case set. Check it with `.qualityai/skills/spec-based-testing/tooling/validate_spec_cases.py`.
 
-**Routing:** The orchestrator merges role case sets, then runs compare once. A single-role request derives only that role's sources and marks the others `out_of_scope`.
+**Routing:** The orchestrator merges role case sets using `.qualityai/skills/spec-based-testing/references/case-set.md` (a source is `present` if any role read it), then runs compare once. A single-role request derives only that role's sources and marks the others `out_of_scope`.
 
 **Output:** Case set (source and source ref on every case) and findings for `unmentioned` cases (`skill_applied: spec-based-testing#compare`). Hand test design to the test-type skill. Humans merge.
 
@@ -82,7 +82,7 @@ When the change has acceptance criteria, journeys, or FMEA, include §5 so the t
 
 1. `eval-harness` / `record` — write `.qualityai/evals/records/rec-<slug>.md` (`incident`, `revert`, or `false_positive`) naming the agent or skill that missed it.
 2. `eval-harness` / `case` — write `.qualityai/evals/cases/eval-<slug>.md` with input, bad outcome, and expected finding.
-3. `eval-harness` / `check` — confirm the pair. Run `skills/eval-harness/tooling/validate_eval_case.py --root .qualityai/evals`.
+3. `eval-harness` / `check` — confirm the pair. Run `.qualityai/skills/eval-harness/tooling/validate_eval_case.py --root .qualityai/evals`.
 
 **Routing:** The role that owned the miss drafts the pair. `qa.lead` keeps the set reviewable. The orchestrator does not drop a miss that has no case.
 

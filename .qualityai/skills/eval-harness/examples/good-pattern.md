@@ -9,7 +9,7 @@ That miss is stored as a pair:
 | `.qualityai/evals/records/rec-refund-double-charge.md` | `incident` record. Target skill `spec-based-testing`. |
 | `.qualityai/evals/cases/eval-refund-double-charge.md` | Regression case: input, bad outcome, expected finding |
 
-The case input repeats the AC, the journey step, FM-14, and the Java test that was green. The bad outcome says the engineer treated that test as coverage. The expected finding is the `unmentioned` FM-14 result from `spec-based-testing#compare`.
+The case input repeats the AC, the journey step, FM-14, and the Java test that was green. The bad outcome says the engineer treated that test as coverage. The expected finding is the `unmentioned` FM-14 result from `spec-based-testing#compare`. The same record has a second case, `eval-refund-partial`, which locks the unmentioned AC-2.
 
 Two other shipped pairs show the other kinds:
 

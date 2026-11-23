@@ -95,8 +95,10 @@ Optional keys on either object: `confidence` (number from 0 to 1), `rationale`. 
 
 ## Pairing rules
 
-- Every record has at least one case.
+- Every record has at least one case. One record may have several cases when one review missed more than one finding. Every case uses that record's agent or skill.
 - `kind`, and the agent or skill id, match across the pair.
+- `example: true` on a record requires `example: true` on each of its cases, and the reverse.
+- Headings inside a fenced code block are not sections. A second `##` of the same name is an error.
 - `status: retired` stays in the tree so the miss is not deleted quietly.
 
 ## Forms

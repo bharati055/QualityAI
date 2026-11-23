@@ -40,7 +40,7 @@ These files are patterns (`example: true`), not this product's production histor
 
 | Kind | Target | Record | Case |
 |---|---|---|---|
-| incident | skill `spec-based-testing` | `records/rec-refund-double-charge.md` | `cases/eval-refund-double-charge.md` |
+| incident | skill `spec-based-testing` | `records/rec-refund-double-charge.md` | `cases/eval-refund-double-charge.md` (FM-14) and `cases/eval-refund-partial.md` (AC-2) |
 | revert | agent `qa.lead` | `records/rec-checkout-promo-revert.md` | `cases/eval-checkout-promo-revert.md` |
 | false_positive | skill `testing-patterns` | `records/rec-hollow-assert-false-positive.md` | `cases/eval-hollow-assert-false-positive.md` |
 

@@ -22,4 +22,4 @@ Spec excerpt the review had:
 - Journey `journey-checkout` step 4. Confirmation shows Refunded only after the gateway accepts.
 - FM-14. Gateway applies the refund, then the response times out. A retry must not submit a second refund.
 
-The diff's test `RefundServiceTest#refundsFullAmount` asserted `REFUNDED` for a single call. Review treated that green test as coverage. No finding named FM-14. Ticket id pasted for humans: `PAY-2041`.
+The diff's test `RefundServiceTest#refundsFullAmount` asserted `REFUNDED` for a single call. Review treated that green test as coverage. No finding named FM-14. The same review also left AC-2 (partial refund) unmentioned. Ticket id pasted for humans: `PAY-2041`. Cases: `eval-refund-double-charge` (FM-14) and `eval-refund-partial` (AC-2).

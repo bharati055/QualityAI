@@ -67,7 +67,7 @@ Turn one record into a regression case the same agent or skill should meet next 
 ### Step 5: Leave execution out
 
 - Do not add a score, a model name, or a CI job. Those are later.
-- Every case for a record uses that record's agent or skill. A different target is a different record.
+- Every case for a record uses that record's agent or skill. Several cases may share one record when one review missed more than one finding. A different target is a different record.
 
 ## Decision Criteria
 
@@ -88,7 +88,8 @@ Severity for findings: high / medium / low per FINDING-SCHEMA.md.
 ## Examples
 
 - `../../examples/good-pattern.md`
-- `.qualityai/evals/cases/eval-refund-double-charge.md` — incident case
+- `.qualityai/evals/cases/eval-refund-double-charge.md` — incident case (FM-14)
+- `.qualityai/evals/cases/eval-refund-partial.md` — second case on the same record (AC-2)
 - `.qualityai/evals/cases/eval-checkout-promo-revert.md` — revert case
 - `.qualityai/evals/cases/eval-hollow-assert-false-positive.md` — false-positive case
 - `../../examples/bad-pattern.md`

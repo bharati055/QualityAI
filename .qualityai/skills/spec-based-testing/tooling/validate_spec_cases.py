@@ -207,6 +207,26 @@ def validate_case_set(data: object) -> list[str]:
             if not _nonempty(item.get("evidence")) or not _nonempty(item.get("note")):
                 errors.append(f"{label} needs non-empty evidence and note")
 
+    if isinstance(consulted, dict) and set(consulted) == set(SOURCES) and isinstance(cases, list):
+        covered = {key: False for key in SOURCES}
+        for case in cases:
+            if not isinstance(case, dict):
+                continue
+            if case.get("source") in covered:
+                covered[case["source"]] = True
+            for item in case.get("also_from") or []:
+                if isinstance(item, dict) and item.get("source") in covered:
+                    covered[item["source"]] = True
+        if isinstance(skipped, list):
+            for item in skipped:
+                if isinstance(item, dict) and item.get("source") in covered:
+                    covered[item["source"]] = True
+        for key in SOURCES:
+            if consulted.get(key) == "present" and not covered[key]:
+                errors.append(
+                    f"sources_consulted.{key} is present but no case, also_from, or skipped row uses it"
+                )
+
     return errors
 
 
@@ -282,6 +302,12 @@ def _self_check() -> int:
     missing_gap["sources_consulted"]["failure_mode"] = "missing"
     missing_gap["cases"] = [case for case in missing_gap["cases"] if case["source"] != "failure_mode"]
     mutants.append(("missing source without gap note", missing_gap))
+
+    unread = json.loads(json.dumps(data))
+    unread["cases"] = [case for case in unread["cases"] if case["source"] == "ac"]
+    for case in unread["cases"]:
+        case["also_from"] = []
+    mutants.append(("present journey with no case or skip", unread))
 
     failed: list[str] = []
     for name, mutant in mutants:

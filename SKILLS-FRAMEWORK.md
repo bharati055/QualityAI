@@ -22,7 +22,7 @@ Cite findings as `skill-id#section` (example: `testing-patterns#error-path-cover
 
 `ai-code-detection` is a **review-depth rubric** for likely AI-assisted or high-volume generated changes. It does not claim Copilot/Claude/human authorship as fact.
 
-Executable `tooling/` under a skill is optional and **not required for v1**. v1 skills are markdown: `SKILL.md`, playbooks, coverage/gaps, examples, references.
+Executable `tooling/` under a skill is optional and **not required for v1**. v1 skills are markdown: `SKILL.md`, playbooks, coverage/gaps, examples, references. The Phase 2 checkers named above are the exception: they ship under `tooling/` and still do not run CI.
 
 Agents live at `.qualityai/agents/qa.[role].agent.md` and `.qualityai/agents/qa.[role].agent.feedback.md`.
 

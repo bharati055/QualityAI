@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import re
 import sys
+import tempfile
 from datetime import datetime
 from pathlib import Path
 
@@ -32,10 +33,10 @@ FALSE_POSITIVE_KEYS = MISS_FINDING_KEYS | {"expected", "rejected_finding"}
 SLUG = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 AGENT_ID = re.compile(r"^qa\.[a-z0-9]+(?:[.-][a-z0-9]+)*$")
 SKILL_APPLIED = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*#[a-z0-9]+(?:-[a-z0-9]+)*$")
-SECRET = re.compile(
-    r"-----BEGIN [A-Z ]*PRIVATE KEY-----"
-    r"|AKIA[0-9A-Z]{16}"
-    r"|(?i:(?:api[_-]?key|password)\s*[:=]\s*\S+)"
+SECRET_BLOCK = re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----|AKIA[0-9A-Z]{16}")
+SECRET_ASSIGN = re.compile(r"(?i)(?:api[_-]?key|password|secret|token)\s*[:=]\s*(\S+)")
+SECRET_PLACEHOLDER = re.compile(
+    r"(?i)^(empty|null|none|todo|example|redacted|changeme|\*+|<[^>]+>|placeholder)$"
 )
 
 FRONTMATTER = re.compile(r"<!--(.*?)-->", re.DOTALL)
@@ -64,14 +65,33 @@ def _frontmatter(text: str) -> tuple[dict[str, str], list[str]]:
     return fields, errors
 
 
-def _sections(text: str) -> dict[str, str]:
-    parts = re.split(r"^## ", text, flags=re.MULTILINE)
-    found: dict[str, str] = {}
-    for part in parts[1:]:
-        lines = part.splitlines()
-        title = lines[0].strip().lower()
-        found[title] = "\n".join(lines[1:]).strip()
-    return found
+def _sections(text: str) -> tuple[dict[str, str], list[str]]:
+    """Split markdown sections. Headings inside fenced code are not sections."""
+    sections: dict[str, list[str]] = {}
+    errors: list[str] = []
+    current: str | None = None
+    in_fence = False
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            in_fence = not in_fence
+            if current is not None:
+                sections[current].append(line)
+            continue
+        if not in_fence and line.startswith("## "):
+            title = line[3:].strip().lower()
+            if title in sections:
+                errors.append(f"duplicate section '{title}'")
+            else:
+                sections[title] = []
+            current = title
+            continue
+        if current is not None:
+            sections[current].append(line)
+    if in_fence:
+        errors.append("unclosed code fence")
+    rendered = {title: "\n".join(body).strip() for title, body in sections.items()}
+    return rendered, errors
 
 
 def _target_id_ok(target_type: str, target_id: str) -> bool:
@@ -111,8 +131,14 @@ def _check_sections(sections: dict[str, str], required: set[str]) -> list[str]:
 
 
 def _secrets(text: str) -> list[str]:
-    if SECRET.search(text):
+    if SECRET_BLOCK.search(text):
         return ["file looks like it contains a secret; remove it"]
+    for match in SECRET_ASSIGN.finditer(text):
+        value = match.group(1).strip(".,;\"'`")
+        if SECRET_PLACEHOLDER.match(value):
+            continue
+        if len(value) >= 12:
+            return ["file looks like it contains a secret; remove it"]
     return []
 
 
@@ -137,7 +163,9 @@ def validate_record(text: str, stem: str) -> tuple[dict[str, str], list[str]]:
             datetime.strptime(date, "%Y-%m-%d")
         except ValueError:
             errors.append("date must be YYYY-MM-DD")
-    errors.extend(_check_sections(_sections(text), RECORD_SECTIONS))
+    sections, section_errors = _sections(text)
+    errors.extend(section_errors)
+    errors.extend(_check_sections(sections, RECORD_SECTIONS))
     return fields, errors
 
 
@@ -216,7 +244,8 @@ def validate_case(text: str, stem: str) -> tuple[dict[str, str], list[str]]:
     status = fields.get("status")
     if status is not None and status not in STATUSES:
         errors.append("status must be open or retired")
-    sections = _sections(text)
+    sections, section_errors = _sections(text)
+    errors.extend(section_errors)
     errors.extend(_check_sections(sections, CASE_SECTIONS))
     kind = fields.get("kind")
     if kind in KINDS and "expected finding" in sections and len(sections["expected finding"]) >= 40:
@@ -261,6 +290,12 @@ def validate_root(root: Path) -> list[str]:
             errors.append(f"{path}: target_type does not match the record")
         if fields.get("target_id") and fields.get("target_id") != record.get("missed_by_id"):
             errors.append(f"{path}: target_id does not match the record")
+        record_example = record.get("example")
+        case_example = fields.get("example")
+        if record_example == "true" and case_example != "true":
+            errors.append(f"{path}: example must be true when the record is an example")
+        if case_example == "true" and record_example != "true":
+            errors.append(f"{path}: example true requires the record to be an example too")
 
     for record_id, count in sorted(case_targets.items()):
         if count < 1:
@@ -291,8 +326,102 @@ def _self_check() -> int:
         print("self-check: false positive without rejected_finding should fail", file=sys.stderr)
         return 1
 
-    print(f"self-check ok ({root})")
-    return 0
+    fenced = sample.replace(
+        "## Input\n",
+        "## Input\n\n```md\n## Evidence\nheading inside a fence\n```\n\n"
+        "The input still states the spec and the diff the agent should have used.\n",
+    )
+    _, fenced_errors = validate_case(fenced, "eval-refund-double-charge")
+    if fenced_errors:
+        print("self-check: fenced heading broke the case:", fenced_errors, file=sys.stderr)
+        return 1
+    unclosed = sample.replace("```java\n", "```java\n", 1).replace("```\n", "", 1)
+    _, unclosed_errors = validate_case(unclosed, "eval-refund-double-charge")
+    if not any("unclosed code fence" in item for item in unclosed_errors):
+        print("self-check: unclosed fence should fail", unclosed_errors, file=sys.stderr)
+        return 1
+
+    if _secrets("The case says password: empty and must not be blocked."):
+        print("self-check: placeholder password was treated as a secret", file=sys.stderr)
+        return 1
+    if not _secrets("api_key: abcdEFGH12345678"):
+        print("self-check: long api_key assignment should be rejected", file=sys.stderr)
+        return 1
+
+    duplicated = sample.replace("## Bad outcome\n", "## Bad outcome\n\n## Bad outcome\n", 1)
+    _, dup_errors = validate_case(duplicated, "eval-refund-double-charge")
+    if not any("duplicate section" in item for item in dup_errors):
+        print("self-check: duplicate section should fail", file=sys.stderr)
+        return 1
+
+    if _pair_mismatch_ok():
+        print(f"self-check ok ({root})")
+        return 0
+    return 1
+
+
+def _pair_mismatch_ok() -> bool:
+    """A case whose kind disagrees with its record must fail validate_root."""
+    record = """# Record: sample
+
+<!--
+id: rec-sample-miss
+kind: incident
+missed_by_type: skill
+missed_by_id: spec-based-testing
+date: 2026-11-23
+example: false
+-->
+
+## What happened
+
+The review shipped a green test and missed the failure mode the spec already named.
+
+## Evidence
+
+The pasted diff showed only the happy path. No failure-mode case was written.
+"""
+    case = """# Eval case: sample
+
+<!--
+id: eval-sample-miss
+kind: revert
+target_type: skill
+target_id: spec-based-testing
+record_id: rec-sample-miss
+status: open
+example: false
+-->
+
+## Input
+
+Spec FM-1 says a timeout retry must not submit a second refund. The diff only tests the happy path.
+
+## Bad outcome
+
+The skill reported the path covered because the happy-path test was green.
+
+## Expected finding
+
+```json
+{
+  "finding": "Failure mode FM-1 is unmentioned in the feature diff",
+  "severity": "high",
+  "skill_applied": "spec-based-testing#compare"
+}
+```
+"""
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        (root / "records").mkdir()
+        (root / "cases").mkdir()
+        (root / "records" / "rec-sample-miss.md").write_text(record, encoding="utf-8")
+        (root / "cases" / "eval-sample-miss.md").write_text(case, encoding="utf-8")
+        errors = validate_root(root)
+    if not any("kind revert does not match record incident" in item for item in errors):
+        print("self-check: kind mismatch should fail", errors, file=sys.stderr)
+        return False
+    return True
 
 
 def main(argv: list[str]) -> int:

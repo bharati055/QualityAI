@@ -35,9 +35,21 @@ Finished output of `spec-based-testing#report`. UTF-8 JSON. `tooling/validate_sp
 
 A case `source` must be a source marked `present`.
 
+Every `present` source must show up on a case (`source` or `also_from`) or on a `skipped` row. A present source with neither was not read. `missing` and `out_of_scope` sources must not appear on cases.
+
 ## Source order
 
 Derive in this order so the primary `source` is stable when two specs overlap: acceptance criteria, then journeys, then failure modes. Put the later spec in `also_from`.
+
+## Merging role sets
+
+The orchestrator merges one draft per role before `compare`.
+
+- Union `cases` by `id`. When two roles describe the same behavior, keep one case and put the other source on `also_from`.
+- A source is `present` if any role marked it `present`.
+- A source is `missing` if no role marked it `present` and an in-scope role marked it `missing`. Keep that `source_gaps` note.
+- A source is `out_of_scope` only when every role marked it `out_of_scope`.
+- Union `skipped`. After compare, union `diff_only`.
 
 ## Worked file
 
