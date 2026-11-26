@@ -31,11 +31,13 @@ See [PROJECT-REQUIREMENTS.md](PROJECT-REQUIREMENTS.md) and [ARCHITECTURE.md](ARC
 - **Spec-based tests** — [`.qualityai/instructions/WORKFLOWS.md`](.qualityai/instructions/WORKFLOWS.md) §5 and skill `spec-based-testing`. Cases come from acceptance criteria, journeys, and FMEA first. The feature diff is compared after that. Every case names its source (`ac`, `journey`, or `failure_mode`). Cases the change never mentioned are flagged `unmentioned`.
 - **Eval harness** — [`.qualityai/evals/`](.qualityai/evals/) and skill `eval-harness`. An incident, a revert, or a false-positive finding becomes a regression case (input, bad outcome, expected finding) for the agent or skill that missed it.
 
-Risk-tiered autonomy, quarantine rules in CI, and GitHub/Jira adapters stay later addons.
+- **Quarantine metadata** — skill `flaky-quarantine` and [`.qualityai/context/suite-trust.md`](.qualityai/context/suite-trust.md). Every quarantine recommendation or record needs `owner`, `end_date`, `ticket_id`, `reason`, and `exit_criteria`. CI rejects incomplete records, mutes without a ticket, and expired records with no escalation finding.
+
+Risk-tiered autonomy and GitHub/Jira adapters (including ticket create/sync) stay later addons.
 
 ## Pack integrity
 
-`python3 scripts/validate_pack.py --self-check` (stdlib Python 3) checks that the pack still honours its contract: every skill folder is complete, relative Markdown links resolve, referenced skill ids and phases exist, `*.agent.md` files hold no inline checklists, and `status: stub` matches the STUB banner. It also runs its own unit tests and the spec-case and eval checkers. [`.github/workflows/pack-integrity.yml`](.github/workflows/pack-integrity.yml) runs it on every pull request and on pushes to `main`. This is a check on this repository, not a GitHub addon for host repos.
+`python3 scripts/validate_pack.py --self-check` (stdlib Python 3) checks that the pack still honours its contract: every skill folder is complete, relative Markdown links resolve, referenced skill ids and phases exist, `*.agent.md` files hold no inline checklists, `status: stub` matches the STUB banner, and quarantine metadata is complete (`validate_quarantine.py`). It also runs its own unit tests and the spec-case, eval, and quarantine checkers. [`.github/workflows/pack-integrity.yml`](.github/workflows/pack-integrity.yml) runs it on every pull request and on pushes to `main`. This is a check on this repository, not a GitHub addon for host repos.
 
 ## Consume in any repo
 

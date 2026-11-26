@@ -19,3 +19,5 @@ jobs:
           python-version: "3.12"
       - name: Pack integrity self-check
         run: python scripts/validate_pack.py --self-check
+      - name: Quarantine metadata
+        run: python .qualityai/skills/flaky-quarantine/tooling/validate_quarantine.py --root .

@@ -12,15 +12,19 @@ Checks (each issue is printed as `CODE path: message`):
               FINDING-SCHEMA does not exist
     CHECKLIST `- [ ]` / `- [x]` task list inside a `*.agent.md` file
     STUB      `status: stub` and the STUB banner disagree in a context file
+    QUAR_*    quarantine metadata incomplete, expired without escalation, or a
+              muted test without a ticket (flaky-quarantine/tooling/validate_quarantine.py)
 """
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import re
 import subprocess
 import sys
 import unittest
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -265,8 +269,27 @@ def check_stubs(root: Path) -> list[Issue]:
     return issues
 
 
+def quarantine_tool(root: Path):
+    path = qa_dir(root) / "skills" / "flaky-quarantine" / "tooling" / "validate_quarantine.py"
+    if not path.is_file():
+        return None
+    spec = importlib.util.spec_from_file_location("validate_quarantine", path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def check_quarantine(root: Path) -> list[Issue]:
+    tool = quarantine_tool(root)
+    if tool is None:
+        return []
+    found = tool.validate_root(root, None, date.today())
+    return [Issue(i.code, i.path, i.message) for i in found]
+
+
 def validate(root: Path) -> list[Issue]:
-    checks = (check_skills, check_links, check_skill_refs, check_checklists, check_stubs)
+    checks = (check_skills, check_links, check_skill_refs, check_checklists, check_stubs, check_quarantine)
     return [issue for check in checks for issue in check(root)]
 
 
@@ -288,6 +311,7 @@ def self_check() -> int:
     skills = REPO / ".qualityai" / "skills"
     spec = skills / "spec-based-testing"
     evals = skills / "eval-harness"
+    quarantine = skills / "flaky-quarantine"
     py = sys.executable
     results = [
         run_unit_tests(),
@@ -300,6 +324,10 @@ def self_check() -> int:
         run_command(
             "validate_eval_case --root .qualityai/evals",
             [py, str(evals / "tooling/validate_eval_case.py"), "--root", str(qa_dir(REPO) / "evals")],
+        ),
+        run_command(
+            "validate_quarantine --self-check",
+            [py, str(quarantine / "tooling/validate_quarantine.py"), "--self-check"],
         ),
     ]
     print("== validate_pack (this repo)")

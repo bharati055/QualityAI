@@ -1,0 +1,27 @@
+{
+  "as_of": "2026-11-26",
+  "quarantines": [
+    {
+      "test_id": "CheckoutIT#shouldConfirmBooking",
+      "owner": "TBD",
+      "end_date": "soon",
+      "reason": "flaky"
+    },
+    {
+      "test_id": "SearchApiTest#returnsFacets",
+      "owner": "@squad-search",
+      "end_date": "2026-10-01",
+      "ticket_id": "QA-1301",
+      "reason": "Depends on a shared search index that is rebuilt nightly",
+      "exit_criteria": "Test seeds its own index fixture"
+    }
+  ],
+  "findings": [
+    {
+      "finding": "Quarantine CheckoutPromoIT#shouldApplyCode",
+      "severity": "low",
+      "skill_applied": "flaky-quarantine#quarantine",
+      "agent": "qa.lead"
+    }
+  ]
+}

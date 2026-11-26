@@ -1,0 +1,59 @@
+{
+  "as_of": "2026-11-26",
+  "quarantines": [
+    {
+      "test_id": "CheckoutIT#shouldConfirmBooking",
+      "owner": "@squad-payments",
+      "start_date": "2026-11-20",
+      "end_date": "2026-12-15",
+      "ticket_id": "QA-1234",
+      "reason": "Failed 4 of 20 CI runs with no product change; click races the confirmation animation",
+      "exit_criteria": "10 consecutive green CI runs after replacing the sleep with an explicit wait",
+      "mechanism": "disabled-annotation"
+    },
+    {
+      "test_id": "SearchApiTest#returnsFacets",
+      "owner": "@squad-search",
+      "end_date": "2026-11-20",
+      "ticket_id": "QA-1301",
+      "reason": "Depends on a shared search index that is rebuilt nightly; fails during the rebuild window",
+      "exit_criteria": "Test seeds its own index fixture and passes 10 consecutive runs"
+    }
+  ],
+  "findings": [
+    {
+      "finding": "Quarantine QA-1301 expired on 2026-11-20 without a fix or extension",
+      "evidence": {
+        "file": null,
+        "note": "SearchApiTest#returnsFacets is still muted; ticket QA-1301 is open and end_date has passed"
+      },
+      "severity": "medium",
+      "confidence": 0.9,
+      "rationale": "An expired quarantine hides a regression signal with no owner decision",
+      "recommendation": "Owner @squad-search fixes the test, or the Lead approves one extension through a PR, or the test is deleted",
+      "skill_applied": "flaky-quarantine#expiry-review",
+      "agent": "qa.lead"
+    },
+    {
+      "finding": "Quarantine CheckoutPromoIT#shouldApplyCode (QA-1240) until 2026-12-10",
+      "evidence": {
+        "file": "src/test/java/shop/CheckoutPromoIT.java",
+        "note": "6 of 20 runs failed on the first attempt and passed on rerun; no product change in window"
+      },
+      "severity": "low",
+      "confidence": 0.8,
+      "rationale": "Flake is environment-side (cold dependency); quarantine keeps the suite trustworthy while the owner adds a warm-up",
+      "recommendation": "Apply via PR: @Disabled(\"QA-1240 ...\") and the registry record; human approves",
+      "skill_applied": "flaky-quarantine#quarantine",
+      "agent": "qa.lead",
+      "quarantine": {
+        "test_id": "CheckoutPromoIT#shouldApplyCode",
+        "owner": "@squad-payments",
+        "end_date": "2026-12-10",
+        "ticket_id": "QA-1240",
+        "reason": "Passes on rerun in 3 of 3 retries; fails on first run when the promo service is cold",
+        "exit_criteria": "Warm-up step added and 10 consecutive green CI runs"
+      }
+    }
+  ]
+}

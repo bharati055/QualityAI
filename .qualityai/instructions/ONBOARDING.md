@@ -99,6 +99,7 @@ Fill `.qualityai/context/` **before** expecting strong results. Use forms under 
 | P1 | `journeys/*.md` (start with **one** critical journey; use `templates/context/JOURNEY-TEMPLATE.md`) | Lead | Path + deps + **journey SLIs** (latency p95/p99, pass rate, concurrency, availability, data quality/completeness) |
 | P1–P2 | `performance-testing.md` | Architect | Gatling/JMeter, SLIs |
 | P1–P2 | `architecture/*.md` | Architect | SUT, FMEA |
+| P1–P2 | `suite-trust.md` | Lead | Flake thresholds, quarantine fields, expiry (defaults shipped; tune) |
 
 ### P2 stubs (implement as needed — not required for day-1 pilot)
 
@@ -109,7 +110,6 @@ Fill `.qualityai/context/` **before** expecting strong results. Use forms under 
 | `security-testing.md` | Security reviews need product trust-boundary facts |
 | `api-and-contracts.md` | API/contract skills lack spec locations |
 | `observability.md` | RCA needs dashboards/metrics (prep for GCO) |
-| `suite-trust.md` | Flaky quarantine policy must be project-specific |
 | `nfr.md` | Need system defaults / cross-cutting NFRs (journey SLIs still go on the journey file) |
 | `glossary.md` | Domain language is ambiguous |
 
@@ -165,7 +165,7 @@ Not required for first value:
 
 - Risk-tiered autonomy (low / medium / high HITL)
 - GitHub Actions posting QualityAI reports / enforcing `quality-gates/` matrices
-- Jira AC intake and quarantine ticket automation (CI metadata for owner, end date, ticket id)
+- Jira AC intake and quarantine ticket create/sync (the quarantine metadata checker already ships: `flaky-quarantine/tooling/validate_quarantine.py`)
 - GCO metrics for SLOs, load requirements, failure RCA
 
 Spec-based test generation and the eval harness are already in the pack (`WORKFLOWS.md` §5 and §6). They are markdown workflows plus a Python checker. They do not run CI and they do not file tickets.
@@ -207,7 +207,7 @@ R = does work, A = accountable approval, C = consulted, I = informed.
 | Ignores your Playwright/Selenium layout | Complete `test-automation-framework.md` paths/tags |
 | Suggests wrong stage checks | Edit `quality-gates/GitWorkflow_*.md` |
 | Mis-labels env failures as product bugs | Implement stub `environments.md` |
-| Flakes / quarantine chaos | Implement stub `suite-trust.md`; enforce quarantine fields |
+| Flakes / quarantine chaos | Tune `suite-trust.md` thresholds; keep `.qualityai/quarantine/` records passing `validate_quarantine.py` |
 | API/contract suggestions miss specs | Implement stub `api-and-contracts.md` |
 | Agents invent domain terms | Implement stub `glossary.md` |
 | Agents treat stub TODOs as facts | Remind: stubs ≠ truth; report context missing |

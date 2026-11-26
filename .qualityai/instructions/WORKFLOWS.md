@@ -51,8 +51,9 @@ When the change has acceptance criteria, journeys, or FMEA, include §5 so the t
 **Routing:**
 
 1. `failure-triage` — classify `product_defect` | `test_script_issue` | `environment` | `unknown`.
-2. If flake: `flaky-quarantine` — require **owner**, **end date**, **ticket ID**, reason, exit criteria.
-3. `qa.lead` escalates expired quarantines; humans attach/create Jira (Phase 2 can automate link).
+2. If flake: `flaky-quarantine` — require **owner**, **end date**, **ticket ID**, reason, exit criteria. Thresholds and allowed mutes: `context/suite-trust.md`.
+3. `qa.lead` escalates expired quarantines with a `flaky-quarantine#expiry-review` finding; humans attach/create Jira (Phase 2 can automate link).
+4. CI check: `skills/flaky-quarantine/tooling/validate_quarantine.py` (run by `scripts/validate_pack.py`) rejects missing fields, unticketed mutes, and expired records with no escalation finding. Format: `skills/flaky-quarantine/references/quarantine-metadata.md`.
 
 **Output:** Triage findings + optional quarantine recommendation (apply via PR; no push to main).
 

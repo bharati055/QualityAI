@@ -19,6 +19,7 @@ Fill these templated markdown files for your product. They are the AI-readable r
 | `squad/` | Product area + local frameworks | Engineer |
 | `journeys/` | Critical user journeys + **per-journey SLIs/NFRs** (see `templates/context/JOURNEY-TEMPLATE.md`) | Lead |
 | `architecture/` | SUT architecture, FMEA, observability | Architect |
+| `suite-trust.md` | Flake thresholds, quarantine fields, expiry, allowed mutes (defaults shipped; tune per project) | Lead |
 
 ## P2 stubs (implement as needed)
 
@@ -31,7 +32,6 @@ These ship as **explicit stubs**. Implement when the related workflow starts fai
 | `security-testing.md` | Auth/trust boundaries | Architect | Security skill noise |
 | `api-and-contracts.md` | Specs + contract repos | Lead | API/contract gaps |
 | `observability.md` | Logs/metrics/traces | Architect | RCA / GCO prep |
-| `suite-trust.md` | Flake + quarantine policy | Lead | Untrustworthy suite |
 | `nfr.md` | **Defaults + cross-cutting only** (journey SLIs live under `journeys/`) | Architect | Missing system defaults / a11y / compliance |
 | `glossary.md` | Domain terms | Shared | Ambiguous product language |
 
