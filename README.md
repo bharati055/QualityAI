@@ -33,6 +33,10 @@ See [PROJECT-REQUIREMENTS.md](PROJECT-REQUIREMENTS.md) and [ARCHITECTURE.md](ARC
 
 Risk-tiered autonomy, quarantine rules in CI, and GitHub/Jira adapters stay later addons.
 
+## Pack integrity
+
+`python3 scripts/validate_pack.py --self-check` (stdlib Python 3) checks that the pack still honours its contract: every skill folder is complete, relative Markdown links resolve, referenced skill ids and phases exist, `*.agent.md` files hold no inline checklists, and `status: stub` matches the STUB banner. It also runs its own unit tests and the spec-case and eval checkers. [`.github/workflows/pack-integrity.yml`](.github/workflows/pack-integrity.yml) runs it on every pull request and on pushes to `main`. This is a check on this repository, not a GitHub addon for host repos.
+
 ## Consume in any repo
 
 The pack is **tool-agnostic**. Any markdown-capable coding agent can read `.qualityai/`.
