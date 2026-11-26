@@ -25,6 +25,17 @@ Follow **`instructions/ONBOARDING.md`** end-to-end. Short version:
 3. Point the agent (Cursor: `instructions/CONSUME.md`).
 4. Ask for: feature test suggestion | spec-based tests | PR review | coverage & gaps | an eval case.
 
+## Pack integrity
+
+From the QualityAI repo root (the checker is not part of the vendored pack):
+
+```bash
+python3 scripts/validate_pack.py --self-check   # unit tests + all pack checkers
+python3 scripts/validate_pack.py --root <dir>   # contract check only
+```
+
+It verifies skill folder contents and frontmatter, relative links, skill ids referenced by agents, gates, `WORKFLOWS.md` and `FINDING-SCHEMA.md`, no `- [ ]` checklists in `*.agent.md`, and stub status/banner sync in `context/`. Add new skills with the full folder set (`SKILL.md`, `PLAYBOOK.md`, `coverage/`, `playbook/<phase>/`, good and bad `examples/`, `references/`).
+
 ## Rules
 
 - Shared skills; roles differ by **context scope**.
