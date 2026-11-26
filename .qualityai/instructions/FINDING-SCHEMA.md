@@ -46,6 +46,8 @@ Use canonical IDs only:
 
 Test-type and suite-trust IDs are canonical too (`unit-testing`, `api-testing`, `integration-testing`, `contract-testing`, `test-automation`, `soak-testing`, `failure-triage`, `flaky-quarantine`). See `PROJECT-REQUIREMENTS.md` §8.2 and `.qualityai/skills/README.md`.
 
+A `flaky-quarantine#quarantine` finding also carries a `quarantine` object (`test_id`, `owner`, `end_date`, `ticket_id`, `reason`, `exit_criteria`); see `skills/flaky-quarantine/references/quarantine-metadata.md`. A `flaky-quarantine#expiry-review` finding at severity high or medium escalates an expired quarantine.
+
 Example: `testing-patterns#review`, `spec-based-testing#compare`, or `security-patterns#input-validation`
 
 ## Report envelope

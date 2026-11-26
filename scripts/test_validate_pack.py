@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import io
+import json
 import sys
 import tempfile
 import unittest
@@ -151,6 +152,44 @@ class BrokenPackTest(unittest.TestCase):
         self.assertIn("STUB", codes(self.root))
         write(self.root, ".qualityai/context/stub.md", "Mentions `status: stub` and the STUB banner in prose.\n")
         self.assertEqual(vp.validate(self.root), [])
+
+
+class QuarantineCheckTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        self.root = Path(self._tmp.name)
+        make_pack(self.root)
+        tool = vp.REPO / ".qualityai/skills/flaky-quarantine/tooling/validate_quarantine.py"
+        write(self.root, ".qualityai/skills/flaky-quarantine/tooling/validate_quarantine.py", tool.read_text(encoding="utf-8"))
+
+    def quar_codes(self) -> set[str]:
+        return {issue.code for issue in vp.check_quarantine(self.root)}
+
+    def test_packs_without_registry_pass(self) -> None:
+        self.assertEqual(vp.check_quarantine(self.root), [])
+
+    def test_incomplete_record_fails_pack(self) -> None:
+        write(self.root, ".qualityai/quarantine/q.json", '{"quarantines": [{"test_id": "A#b", "owner": "@x"}]}')
+        self.assertIn("QUAR_MISSING", self.quar_codes())
+
+    def test_expired_record_needs_escalation(self) -> None:
+        record = {
+            "test_id": "A#b",
+            "owner": "@x",
+            "end_date": "2020-01-01",
+            "ticket_id": "QA-1",
+            "reason": "fails without product change",
+            "exit_criteria": "ten green runs in CI",
+        }
+        write(self.root, ".qualityai/quarantine/q.json", json.dumps({"quarantines": [record]}))
+        self.assertIn("QUAR_EXPIRED", self.quar_codes())
+
+    def test_bare_disabled_fails_pack(self) -> None:
+        write(self.root, "src/test/java/ATest.java", "@Disabled\n@Test void a() {}\n")
+        self.assertIn("QUAR_MUTE", self.quar_codes())
+        write(self.root, "src/test/java/ATest.java", '@Disabled("QA-12 flaky")\n@Test void a() {}\n')
+        self.assertEqual(vp.check_quarantine(self.root), [])
 
 
 class CliTest(unittest.TestCase):
